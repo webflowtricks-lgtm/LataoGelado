@@ -315,50 +315,7 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
       {/* Main Admin Stage */}
       <main className="max-w-6xl mx-auto px-4 mt-6">
         
-        {/* Statistics Widgets */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs flex items-center space-x-4">
-            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-              <DollarSign className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Faturamento</p>
-              <p className="text-lg font-display font-bold text-slate-900 mt-0.5">{formatBRL(stats.totalRevenue)}</p>
-            </div>
-          </div>
-
-          <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs flex items-center space-x-4">
-            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-              <ClipboardList className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total de Pedidos</p>
-              <p className="text-lg font-display font-bold text-slate-900 mt-0.5">{stats.totalOrders} logs</p>
-            </div>
-          </div>
-
-          <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs flex items-center space-x-4">
-            <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
-              <Utensils className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Cardápio</p>
-              <p className="text-lg font-display font-bold text-slate-900 mt-0.5">{stats.totalProducts} itens</p>
-            </div>
-          </div>
-
-          <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs flex items-center space-x-4">
-            <div className={`p-3 rounded-xl ${stats.openStatus ? 'bg-teal-50 text-teal-600' : 'bg-rose-50 text-rose-600'}`}>
-              <Activity className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Status Loja</p>
-              <p className="text-lg font-display font-bold text-slate-900 mt-0.5">
-                {stats.openStatus ? 'Aberto' : 'Fechado'}
-              </p>
-            </div>
-          </div>
-        </div>
+       
 
         {/* Tab Navigation Rail */}
         <div className="flex border-b border-slate-200 mb-6 overflow-x-auto">
@@ -404,10 +361,7 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
           {/* TAB 1: LOGGED ORDERS */}
           {activeTab === 'pedidos' && (
             <div className="space-y-4 animate-fade-in">
-              <div className="flex items-center justify-between">
-                <h2 className="text-base font-display font-bold text-slate-800">Histórico de Pedidos Registrados</h2>
-                <span className="text-xs font-semibold text-slate-400">Total acumulado via app</span>
-              </div>
+
 
               {orders.length === 0 ? (
                 <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center shadow-xs">
