@@ -1,0 +1,6 @@
+{
+  "name": "Cardápio Digital",
+  "description": "Um cardápio digital completo com painel de controle (/painel) para gerenciamento de produtos e envio de pedidos direto para o WhatsApp.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

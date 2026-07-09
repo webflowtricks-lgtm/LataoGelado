@@ -1,0 +1,61 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "Item do cardápio digital",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "category": { "type": "string" },
+        "available": { "type": "boolean" },
+        "order": { "type": "integer" }
+      },
+      "required": ["id", "name", "price", "category", "available", "order"]
+    },
+    "StoreSettings": {
+      "title": "StoreSettings",
+      "description": "Configurações gerais do estabelecimento",
+      "type": "object",
+      "properties": {
+        "storeName": { "type": "string" },
+        "whatsappNumber": { "type": "string" },
+        "address": { "type": "string" },
+        "deliveryFee": { "type": "number" },
+        "isOpen": { "type": "boolean" }
+      },
+      "required": ["storeName", "whatsappNumber", "address", "deliveryFee", "isOpen"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Pedido registrado pelo cliente",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "customerName": { "type": "string" },
+        "observations": { "type": "string" },
+        "total": { "type": "number" },
+        "deliveryFee": { "type": "number" },
+        "grandTotal": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "customerName", "total", "deliveryFee", "grandTotal", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Coleção de produtos do cardápio"
+    },
+    "/settings/store": {
+      "schema": "StoreSettings",
+      "description": "Configurações globais da loja"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Coleção de registros de pedidos"
+    }
+  }
+}
