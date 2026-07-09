@@ -20,7 +20,8 @@ import {
   Grid,
   Tags,
   ChevronDown,
-  Crown
+  Crown,
+  Upload
 } from 'lucide-react';
 import { Product, StoreSettings, Order, ProductCategory, Category } from '../types';
 import { 
@@ -836,20 +837,48 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                      Imagem de Destaque (Link da Web)
+                      Imagem do Produto (Link ou Upload do Dispositivo)
                     </label>
                     <span className="text-[10px] text-slate-400 font-semibold">(Opcional)</span>
                   </div>
-                  <input
-                    type="url"
-                    placeholder="Cole o link de uma imagem (ex: do Unsplash ou Google)"
-                    value={prodImage}
-                    onChange={(e) => setProdImage(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-slate-900 rounded-xl py-2.5 px-4 text-sm font-medium outline-hidden transition-colors text-slate-800"
-                  />
+                  <div className="flex flex-col sm:flex-row gap-2.5 mb-2">
+                    <input
+                      type="url"
+                      placeholder="Cole o link de uma imagem da internet"
+                      value={prodImage}
+                      onChange={(e) => setProdImage(e.target.value)}
+                      className="flex-1 bg-slate-50 border border-slate-200 focus:border-slate-900 rounded-xl py-2.5 px-4 text-sm font-medium outline-hidden transition-colors text-slate-800"
+                    />
+                    <label className="sm:shrink-0 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-250 hover:border-slate-350 font-bold text-xs rounded-xl cursor-pointer transition-all flex items-center justify-center space-x-2 select-none active:scale-95">
+                      <Upload className="w-4 h-4 text-slate-600" />
+                      <span>Fazer Upload</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            // Max 2MB file limit to prevent huge Firestore payload sizes
+                            if (file.size > 2 * 1024 * 1024) {
+                              alert("Selecione uma imagem menor que 2MB para garantir o salvamento correto no banco de dados.");
+                              return;
+                            }
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              if (typeof reader.result === 'string') {
+                                setProdImage(reader.result);
+                              }
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
                   
                   {prodImage && (
-                    <div className="mt-2.5 relative w-full h-24 rounded-xl overflow-hidden border border-slate-150 bg-slate-50 flex items-center justify-center">
+                    <div className="mt-2.5 relative w-full h-32 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center group">
                       <img 
                         src={prodImage} 
                         alt="Pré-visualização" 
@@ -858,6 +887,14 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
                           (e.target as HTMLImageElement).style.display = 'none';
                         }}
                       />
+                      <button
+                        type="button"
+                        onClick={() => setProdImage('')}
+                        className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-full transition-colors cursor-pointer"
+                        title="Remover Imagem"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   )}
 
