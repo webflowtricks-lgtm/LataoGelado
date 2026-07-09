@@ -728,74 +728,61 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-[#0c0c0d] overflow-hidden flex flex-col justify-between"
+              className="fixed inset-0 z-50 bg-[#0c0c0d] overflow-y-auto flex flex-col"
             >
-              {/* Floating ambient glow in the center */}
-              <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-yellow-500/10 blur-[120px] pointer-events-none" />
+              {/* Top Banner Image Section - Full Screen Width, Aspect Square */}
+              <div className="relative w-full aspect-square md:max-h-[450px] shrink-0 overflow-hidden bg-neutral-900">
+                {selectedProduct.image ? (
+                  <img 
+                    src={selectedProduct.image} 
+                    alt={selectedProduct.name}
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <UtensilsCrossed className="w-16 h-16 text-neutral-700" />
+                  </div>
+                )}
 
-              {/* Upper Header Row */}
-              <div className="p-5 flex items-center justify-between shrink-0 z-10 max-w-2xl w-full mx-auto">
+                {/* Absolute Close/Back button in Top-Left */}
                 <button
+                  type="button"
                   onClick={() => setSelectedProduct(null)}
-                  className="p-3 bg-[#1e1e22]/90 border border-neutral-800 rounded-2xl text-white hover:bg-neutral-800 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                  className="absolute top-4 left-4 z-20 p-2.5 bg-black/60 backdrop-blur-md rounded-xl border border-white/10 text-white hover:bg-black/85 transition-all cursor-pointer hover:scale-105 active:scale-95 flex items-center justify-center"
                 >
                   <ChevronLeft className="w-5 h-5 text-white" />
                 </button>
-                <span className="font-display font-black text-sm uppercase tracking-widest text-zinc-400">Detalhes do Item</span>
-                {selectedProduct.featured ? (
-                  <div className="p-3 bg-yellow-400/10 border border-yellow-400/30 rounded-2xl text-yellow-400 shadow-lg shadow-yellow-500/10">
-                    <Crown className="w-5 h-5 fill-yellow-400" />
+
+                {/* Absolute Crown Badge in Top-Right (If Featured) */}
+                {selectedProduct.featured && (
+                  <div className="absolute top-4 right-4 z-20 p-2.5 bg-black/60 backdrop-blur-md rounded-xl border border-white/10 text-yellow-400 flex items-center justify-center">
+                    <Crown className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                   </div>
-                ) : (
-                  <div className="w-11 h-11" />
                 )}
               </div>
 
-              {/* Centered Massive 1:1 Image */}
-              <div className="flex-1 flex flex-col justify-center items-center p-6 z-10">
-                <div className="relative w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 rounded-3xl overflow-hidden border-4 border-neutral-850 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)]">
-                  {selectedProduct.image ? (
-                    <img 
-                      src={selectedProduct.image} 
-                      alt={selectedProduct.name}
-                      className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-neutral-900 flex items-center justify-center">
-                      <UtensilsCrossed className="w-16 h-16 text-neutral-700" />
-                    </div>
-                  )}
-                </div>
-              </div>
+              {/* Naturally Flowing Details Content Card - Overlaps the bottom of the image slightly with a beautiful rounded sheet */}
+              <div className="w-full max-w-2xl mx-auto bg-[#121214] rounded-t-[32px] p-6 sm:p-8 flex flex-col flex-1 pb-12 mt-[-32px] relative z-10 shadow-[0_-15px_30px_rgba(0,0,0,0.8)] border-t border-neutral-850">
+                {/* Horizontal handle indicator */}
+                <div className="w-12 h-1 bg-neutral-800 rounded-full mx-auto mb-6 shrink-0" />
 
-              {/* Sliding Bottom Drawer Sheet (Matches Bottom Half of Right Mockup Screen) */}
-              <motion.div 
-                initial={{ y: '100%' }}
-                animate={{ y: 0 }}
-                exit={{ y: '100%' }}
-                transition={{ type: 'spring', damping: 26, stiffness: 220 }}
-                className="w-full max-w-2xl mx-auto bg-[#17171a] border-t border-neutral-850 rounded-t-[44px] p-6 sm:p-8 flex flex-col justify-between shrink-0 shadow-2xl relative z-10"
-              >
-                {/* Horizontal notch handle */}
-                <div className="w-12 h-1 bg-neutral-700 rounded-full mx-auto mb-6" />
-
-                <div>
-                  {/* Category Pill Tag */}
-                  <div className="flex items-center justify-between mb-3.5">
+                <div className="flex-1">
+                  {/* Category Pill Tag & Product Code */}
+                  <div className="flex items-center justify-between mb-4">
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-yellow-400/10 text-yellow-400 border border-yellow-400/20">
                       {categoryDetail.label}
                     </span>
                     <span className="text-xs text-zinc-500 font-bold">Cod: #{selectedProduct.id.substring(0, 5)}</span>
                   </div>
 
-                  {/* Product Title in massive, gorgeous typography */}
+                  {/* Product Title */}
                   <h3 className="text-2xl sm:text-3xl font-display font-black text-white leading-tight tracking-tight">
                     {selectedProduct.name}
                   </h3>
 
                   {/* Attributes line */}
-                  <div className="flex items-center space-x-4 mt-3 text-xs font-bold text-zinc-400">
+                  <div className="flex items-center space-x-4 mt-3.5 text-xs font-bold text-zinc-400">
                     <span className="flex items-center space-x-1">
                       <span>⭐ Classificação:</span>
                       <span className="text-zinc-200">Popular</span>
@@ -811,14 +798,14 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                     )}
                   </div>
 
-                  {/* Spacious, easy-to-read description block */}
+                  {/* Description text */}
                   <p className="text-zinc-300 text-xs sm:text-sm leading-relaxed mt-5 font-semibold">
                     {selectedProduct.description || 'Uma receita autêntica e fresca preparada com ingredientes selecionados pelo chef. Perfeito para lanchar a qualquer hora do dia ou da noite.'}
                   </p>
                 </div>
 
                 {/* Bottom Action Bar */}
-                <div className="mt-8 pt-6 border-t border-neutral-900/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="mt-8 pt-6 border-t border-neutral-900/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
                   <div>
                     <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Preço Unitário</p>
                     <p className="text-xl sm:text-2xl font-black text-white mt-1">
@@ -827,9 +814,9 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                   </div>
 
                   {selectedProduct.available ? (
-                    <div className="flex flex-col items-end space-y-3 w-full sm:w-auto">
+                    <div className="flex flex-col items-stretch sm:items-end space-y-3 w-full sm:w-auto">
                       {/* Stepper with Minus / Qty / Plus */}
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center justify-between sm:justify-end space-x-3">
                         <span className="text-xs font-bold text-zinc-400">Quantidade:</span>
                         <div className="bg-neutral-900 border border-neutral-850 rounded-2xl p-1 flex items-center space-x-3">
                           <button
@@ -882,12 +869,13 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
 
                 {/* Back button option to close */}
                 <button
+                  type="button"
                   onClick={() => setSelectedProduct(null)}
-                  className="mt-6 w-full py-3 border border-neutral-850 text-zinc-400 hover:text-white rounded-2xl text-xs font-bold transition-colors cursor-pointer"
+                  className="mt-6 w-full py-3 border border-neutral-800 text-zinc-400 hover:text-white rounded-2xl text-xs font-bold transition-colors cursor-pointer bg-neutral-950/40 hover:bg-neutral-900/60"
                 >
                   Voltar ao Cardápio
                 </button>
-              </motion.div>
+              </div>
             </motion.div>
           );
         })()}
@@ -983,6 +971,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                       <div className="flex items-center space-x-3 shrink-0">
                         <div className="flex items-center bg-neutral-900 rounded-xl border border-neutral-850 p-0.5">
                           <button
+                            type="button"
                             onClick={() => updateQuantity(item.product, -1)}
                             className="p-1.5 text-zinc-400 hover:text-white rounded-lg transition-colors cursor-pointer"
                           >
@@ -990,15 +979,24 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                           </button>
                           <span className="text-xs font-black text-white px-2.5">{item.quantity}</span>
                           <button
+                            type="button"
                             onClick={() => updateQuantity(item.product, 1)}
                             className="p-1.5 text-zinc-400 hover:text-white rounded-lg transition-colors cursor-pointer"
                           >
                             <Plus className="w-3.5 h-3.5" />
                           </button>
                         </div>
-                        <span className="text-sm font-black text-white min-w-[70px] text-right">
+                        <span className="text-sm font-black text-white min-w-[64px] text-right">
                           {formatBRL(item.product.price * item.quantity)}
                         </span>
+                        <button
+                          type="button"
+                          onClick={() => setCart(prev => prev.filter(i => i.product.id !== item.product.id))}
+                          className="p-1.5 text-[#facc15] hover:text-yellow-400 rounded-lg hover:bg-neutral-850 transition-colors cursor-pointer shrink-0"
+                          title="Remover item"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
                   ))}
