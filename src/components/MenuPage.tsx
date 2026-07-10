@@ -65,7 +65,11 @@ export const ICON_MAP: Record<string, any> = {
   Apple,
   Grid,
   Martini,
-  CupSoda
+  CupSoda,
+  Crown,
+  Sparkles,
+  Whisky: GlassWater,
+  Uisque: GlassWater
 };
 
 const PRESET_STYLES = [
@@ -348,7 +352,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                 />
               </div>
               <div className="cursor-default">
-                <h1 className="text-lg font-display font-black tracking-tight text-white leading-tight">
+                <h1 className="text-lg font-naughty font-black tracking-tight text-white leading-tight store-name-title">
                   {settings.storeName}
                 </h1>
                 <div className="flex items-center mt-0.5">
@@ -732,8 +736,8 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                   
                   {/* Content over the paper */}
                   <div className="relative z-10 flex items-center space-x-2.5">
-                    <div className="p-1.5 rounded-full bg-neutral-950 border border-neutral-800 text-yellow-400 flex items-center justify-center shadow-md">
-                      <CategoryIcon className="w-4 h-4" />
+                    <div className="p-1.5 rounded-full bg-black border border-neutral-900 flex items-center justify-center shadow-md">
+                      <CategoryIcon className="w-4 h-4 text-yellow-400" />
                     </div>
                     <h2 className="text-base sm:text-lg font-naughty font-black text-neutral-950 tracking-tight menu-category-title">
                       {cat.label}
@@ -861,7 +865,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
         </div>
       </main>
 
-       {/* Spectacular Product Detailed Modal / Overlay (Matches Right Smartphone Screen) */}
+        {/* Spectacular Product Detailed Modal / Overlay (Matches Right Smartphone Screen) */}
       <AnimatePresence>
         {selectedProduct && (
           <ProductDetailModal
