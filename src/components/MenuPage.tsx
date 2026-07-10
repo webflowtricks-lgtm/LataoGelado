@@ -399,31 +399,39 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
 
           {/* Dynamic "Destaque do Dia" Banner (Chicken Baked Card style on Left Screen) */}
           {activeFeatured && (
-            <div 
-              onClick={() => setSelectedProduct(activeFeatured)}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              className="relative overflow-hidden bg-gradient-to-br from-yellow-400 via-amber-400 to-amber-500 border-2 border-orange-500 rounded-[32px] p-6 pb-12 flex items-center justify-between cursor-pointer transition-all hover:shadow-[0_10px_30px_rgba(245,158,11,0.25)] group select-none shadow-2xl"
-            >
-              {/* Background flare element */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/20 rounded-full blur-[70px] pointer-events-none group-hover:bg-white/30 transition-colors duration-300" />
+            <div className="relative pt-6">
+              {/* Overlapping "DESTAQUES DO LATÃO" Brush sticker */}
+              <img 
+                src="https://i.ibb.co/rRnCkxb5/destauqe.png" 
+                alt="Destaques do Latão" 
+                className="absolute left-1/2 -translate-x-1/2 top-1.5 z-20 w-44 sm:w-52 md:w-56 object-contain pointer-events-none drop-shadow-[0_4px_6px_rgba(0,0,0,0.35)]"
+                referrerPolicy="no-referrer"
+              />
               
-              {/* Custom Watermark Logo behind content at 6% opacity (dark/black filter for yellow background) */}
-              <div className="absolute inset-0 rounded-[32px] overflow-hidden pointer-events-none z-0">
-                <img 
-                  src="https://i.ibb.co/2wtGGnh/logo2.png" 
-                  alt="" 
-                  className="absolute bottom-[-16px] right-[-16px] w-75 h-75 object-contain logo-destaque-watermark"
-                  style={{ filter: 'brightness(0)', opacity: 0.06 }}
-                  referrerPolicy="no-referrer"
-                />
-              </div>
-              
-              <div className="flex-1 pr-4 z-10">
-              
+              <div 
+                onClick={() => setSelectedProduct(activeFeatured)}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                className="relative overflow-hidden bg-gradient-to-br from-yellow-400 via-amber-400 to-amber-500 border-2 border-orange-500 rounded-[32px] p-6 pb-12 flex items-center justify-between cursor-pointer transition-all hover:shadow-[0_10px_30px_rgba(245,158,11,0.25)] group select-none shadow-2xl"
+              >
+                {/* Background flare element */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/20 rounded-full blur-[70px] pointer-events-none group-hover:bg-white/30 transition-colors duration-300" />
                 
-                <AnimatePresence mode="wait">
+                {/* Custom Watermark Logo behind content at 6% opacity (dark/black filter for yellow background) */}
+                <div className="absolute inset-0 rounded-[32px] overflow-hidden pointer-events-none z-0">
+                  <img 
+                    src="https://i.ibb.co/2wtGGnh/logo2.png" 
+                    alt="" 
+                    className="absolute bottom-[-16px] right-[-16px] w-75 h-75 object-contain logo-destaque-watermark"
+                    style={{ filter: 'brightness(0)', opacity: 0.06 }}
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+                
+                <div className="flex-1 pr-4 z-10">
+                  
+                  <AnimatePresence mode="wait">
                   <motion.div
                     key={activeFeatured.id}
                     initial={{ opacity: 0, x: 15 }}
@@ -519,6 +527,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                   ))}
                 </div>
               )}
+            </div>
             </div>
           )}
         </div>
