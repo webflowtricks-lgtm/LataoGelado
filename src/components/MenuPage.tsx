@@ -392,10 +392,10 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            className="mb-8 relative overflow-hidden bg-gradient-to-r from-yellow-400 via-amber-400 to-orange-500 border border-yellow-300/30 rounded-[32px] p-6 pb-12 flex items-center justify-between cursor-pointer hover:border-yellow-200/50 transition-all hover:shadow-xl group select-none"
+            className="mb-8 relative overflow-hidden bg-gradient-to-r from-yellow-400 via-amber-400 to-orange-500 border border-yellow-300/30 rounded-[32px] p-6 pb-12 flex items-center justify-between cursor-pointer hover:border-yellow-200/50 transition-[border-color,box-shadow] duration-300 hover:shadow-xl group select-none"
           >
             {/* Background elements */}
-            <div className="absolute top-0 right-0 w-48 h-48 bg-white/20 rounded-full blur-[60px] pointer-events-none group-hover:bg-white/30 transition-all" />
+            <div className="absolute top-0 right-0 w-48 h-48 bg-white/20 rounded-full blur-[60px] pointer-events-none group-hover:bg-white/30 transition-colors duration-300" />
             
             <div className="flex-1 pr-4 z-10">
               <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 bg-neutral-950/15 text-neutral-950 text-[10px] font-black uppercase tracking-widest rounded-full mb-3.5">
