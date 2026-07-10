@@ -1,4 +1,4 @@
-import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
+import { useState, useEffect, ChangeEvent, FormEvent, KeyboardEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Store, Loader2, Lock } from 'lucide-react';
 import MenuPage from './components/MenuPage';
@@ -157,6 +157,20 @@ export default function App() {
     }
   };
 
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      // Allow form submission or handle directly
+      if (password === 'latao@26@') {
+        setIsAuthenticated(true);
+        if (rememberDevice) {
+          localStorage.setItem('latao_remember', 'true');
+        } else {
+          localStorage.removeItem('latao_remember');
+        }
+      }
+    }
+  };
+
   if (isPainel && !isAuthenticated) {
     return (
       <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center p-6 select-none">
@@ -165,6 +179,7 @@ export default function App() {
             type="password"
             value={password}
             onChange={handlePasswordChange}
+            onKeyDown={handleKeyDown}
             placeholder="Digite a senha"
             autoFocus
             className="w-full bg-neutral-900 border border-neutral-800 rounded-2xl px-5 py-3.5 text-center text-yellow-400 placeholder-neutral-600 focus:outline-none focus:ring-1 focus:ring-yellow-400/30 transition-all text-lg tracking-widest font-bold"
@@ -189,8 +204,12 @@ export default function App() {
             </label>
           </div>
 
-          {/* Hidden submit button to guarantee Enter key submission without a visible button */}
-          <button type="submit" className="hidden" aria-hidden="true" />
+          {/* Styled to be visually hidden but natively active for Enter-key submit */}
+          <button 
+            type="submit" 
+            style={{ position: 'absolute', width: '1px', height: '1px', margin: '-1px', padding: '0', overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', border: '0' }}
+            aria-hidden="true" 
+          />
 
           <button 
             type="button"

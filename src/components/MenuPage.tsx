@@ -376,14 +376,14 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            className="mb-8 relative overflow-hidden bg-gradient-to-r from-[#17171a] to-[#25252b] border border-neutral-850 rounded-[32px] p-6 pb-12 flex items-center justify-between cursor-pointer hover:border-neutral-700 transition-all hover:shadow-xl group select-none"
+            className="mb-8 relative overflow-hidden bg-gradient-to-r from-yellow-400 via-amber-400 to-orange-500 border border-yellow-300/30 rounded-[32px] p-6 pb-12 flex items-center justify-between cursor-pointer hover:border-yellow-200/50 transition-all hover:shadow-xl group select-none"
           >
             {/* Background elements */}
-            <div className="absolute top-0 right-0 w-48 h-48 bg-yellow-500/10 rounded-full blur-[60px] pointer-events-none group-hover:bg-yellow-500/15 transition-all" />
+            <div className="absolute top-0 right-0 w-48 h-48 bg-white/20 rounded-full blur-[60px] pointer-events-none group-hover:bg-white/30 transition-all" />
             
             <div className="flex-1 pr-4 z-10">
-              <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 bg-yellow-400/10 text-yellow-400 text-[10px] font-black uppercase tracking-widest rounded-full mb-3.5">
-                <Sparkles className="w-3 h-3" />
+              <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 bg-neutral-950/15 text-neutral-950 text-[10px] font-black uppercase tracking-widest rounded-full mb-3.5">
+                <Sparkles className="w-3 h-3 text-neutral-950" />
                 <span>Destaques do Latão</span>
               </div>
               
@@ -395,15 +395,15 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                   exit={{ opacity: 0, x: -15 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <h3 className="text-xl md:text-2xl font-display font-black text-white leading-tight">
+                  <h3 className="text-xl md:text-2xl font-display font-black text-neutral-950 leading-tight">
                     {activeFeatured.name}
                   </h3>
-                  <p className="text-zinc-400 text-xs font-medium mt-1.5 line-clamp-2 max-w-md">
+                  <p className="text-neutral-900/85 text-xs font-semibold mt-1.5 line-clamp-2 max-w-md">
                     {activeFeatured.description || 'Deliciosa opção em destaque no nosso cardápio! Peça agora mesmo.'}
                   </p>
                   
-                  <div className="flex items-center space-x-3 mt-4 text-xs font-semibold text-zinc-300">
-                    <span className="text-yellow-400 font-extrabold text-sm px-2.5 py-1 bg-yellow-400/10 rounded-xl border border-yellow-400/20">
+                  <div className="flex items-center space-x-3 mt-4 text-xs font-semibold">
+                    <span className="text-yellow-400 font-black text-sm px-3 py-1 bg-neutral-950 rounded-xl border border-neutral-900 shadow-md">
                       {formatBRL(activeFeatured.price)}
                     </span>
                   </div>
@@ -412,7 +412,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
             </div>
 
             {/* Overlapping Floating Dish Preview */}
-            <div className="relative shrink-0 z-10 w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden border-4 border-neutral-800 shadow-2xl transition-transform duration-500 group-hover:scale-105 group-hover:rotate-6">
+            <div className="relative shrink-0 z-10 w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden border-4 border-neutral-950/30 shadow-2xl transition-transform duration-500 group-hover:scale-105 group-hover:rotate-6">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeFeatured.id}
@@ -477,7 +477,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                       setCurrentSlide(idx);
                     }}
                     className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                      idx === currentSlide ? 'bg-yellow-400 w-4' : 'bg-zinc-600 hover:bg-zinc-400'
+                      idx === currentSlide ? 'bg-neutral-950 w-4' : 'bg-neutral-950/35 hover:bg-neutral-950/50'
                     }`}
                   />
                 ))}
