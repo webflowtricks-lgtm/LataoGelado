@@ -633,7 +633,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                           <img 
                             src="https://i.ibb.co/2wtGGnh/logo2.png" 
                             alt="" 
-                            className="absolute bottom-[-16px] right-[-16px] w-28 h-28 object-contain"
+                            className="absolute bottom-[-16px] right-[-16px] w-28 h-28 object-contain logo-inferior-card"
                             style={{ filter: 'brightness(0) invert(1)', opacity: 0.06 }}
                             referrerPolicy="no-referrer"
                           />
@@ -744,7 +744,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-[#0c0c0d] overflow-y-auto flex flex-col"
+              className="fixed inset-0 z-50 bg-[#0c0c0d] overflow-y-auto"
             >
               {/* Top Banner Image Section - Full Screen Width, Aspect Square */}
               <div className="relative w-full aspect-square md:max-h-[450px] shrink-0 overflow-hidden bg-neutral-900">
@@ -779,13 +779,13 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
               </div>
 
               {/* Naturally Flowing Details Content Card - Overlaps the bottom of the image slightly with a beautiful rounded sheet */}
-              <div className="w-full max-w-2xl mx-auto bg-[#121214] rounded-t-[32px] overflow-hidden p-6 sm:p-8 flex flex-col flex-1 pb-12 mt-[-32px] relative z-10 shadow-[0_-15px_30px_rgba(0,0,0,0.8)] border-t border-neutral-850">
+              <div className="w-full max-w-2xl mx-auto bg-[#121214] rounded-t-[32px] p-6 sm:p-8 pb-12 mt-[-32px] relative z-10 shadow-[0_-15px_30px_rgba(0,0,0,0.8)] border-t border-neutral-850">
                 {/* Custom White Outline Watermark Logo behind content at 6% opacity */}
                 <div className="absolute inset-0 rounded-t-[32px] overflow-hidden pointer-events-none z-0">
                   <img 
                     src="https://i.ibb.co/2wtGGnh/logo2.png" 
                     alt="" 
-                    className="absolute bottom-[-20px] right-[-20px] w-48 h-48 object-contain"
+                    className="absolute bottom-[-20px] right-[-20px] w-48 h-48 object-contain logo-inferior-card"
                     style={{ filter: 'brightness(0) invert(1)', opacity: 0.06 }}
                     referrerPolicy="no-referrer"
                   />
