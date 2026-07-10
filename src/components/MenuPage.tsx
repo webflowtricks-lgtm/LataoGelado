@@ -320,31 +320,37 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                 referrerPolicy="no-referrer"
               />
             </div>
-            <div>
+            <div onDoubleClick={onNavigateToAdmin} className="cursor-default" title="Dê duplo clique para o painel">
               <h1 className="text-lg font-display font-black tracking-tight text-white leading-tight">
                 {settings.storeName}
               </h1>
-              <div className="flex items-center space-x-2 mt-0.5">
-                <span className={`inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                  settings.isOpen 
-                    ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' 
-                    : 'bg-rose-500/15 text-rose-400 border border-rose-500/20'
-                }`}>
-                 
-                  {settings.isOpen ? '@LataoGelado' : 'Fechado'}
-                </span>
- 
+              <div className="flex items-center mt-0.5">
+                {settings.isOpen ? (
+                  <span className="text-xs font-bold text-yellow-400 select-none">
+                    @LataoGelado
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-500/15 text-rose-400 border border-rose-500/20 select-none">
+                    Fechado
+                  </span>
+                )}
               </div>
             </div>
           </div>
 
-          <button 
-            onClick={onNavigateToAdmin}
-            className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-[#17171a] hover:bg-neutral-800 border border-neutral-800 text-zinc-300 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+          {/* Simple plain text with "Naughty Monster" font, non-interactive (no link styling) */}
+          <div 
+            onDoubleClick={onNavigateToAdmin}
+            className="select-none py-1.5 pr-2 cursor-default"
+            title="Dê duplo clique para o painel"
           >
-            <span>Painel</span>
-            <ChevronRight className="w-3.5 h-3.5 text-yellow-400" />
-          </button>
+            <span 
+              className="text-yellow-400 tracking-wider text-xl sm:text-2xl"
+              style={{ fontFamily: '"Naughty Monster", sans-serif' }}
+            >
+              É só pedir!
+            </span>
+          </div>
         </div>
       </header>
 
@@ -1009,7 +1015,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                 <form id="checkout-form" onSubmit={handleCheckout} className="space-y-4">
                   <div>
                     <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
-                      Seu Nome (Opcional)
+                      Seu Nome
                     </label>
                     <input 
                       type="text"
