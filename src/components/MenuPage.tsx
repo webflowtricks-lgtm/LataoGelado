@@ -414,7 +414,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                 <img 
                   src="https://i.ibb.co/2wtGGnh/logo2.png" 
                   alt="" 
-                  className="absolute bottom-[-16px] right-[-16px] w-28 h-28 object-contain logo-destaque-watermark"
+                  className="absolute bottom-[-16px] right-[-16px] w-75 h-75 object-contain logo-destaque-watermark"
                   style={{ filter: 'brightness(0)', opacity: 0.06 }}
                   referrerPolicy="no-referrer"
                 />
