@@ -312,8 +312,13 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3">
             {/* Store Icon Badge */}
-            <div className="p-2.5 bg-gradient-to-tr from-yellow-400 to-amber-500 text-black rounded-xl shadow-md">
-              <Store className="w-5 h-5" />
+            <div className="w-11 h-11 rounded-xl overflow-hidden bg-neutral-900 border border-neutral-800/80 flex items-center justify-center shrink-0 shadow-md">
+              <img 
+                src="https://i.ibb.co/2wtGGnh/logo2.png" 
+                alt="Logo" 
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
             </div>
             <div>
               <h1 className="text-lg font-display font-black tracking-tight text-white leading-tight">
@@ -326,7 +331,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                     : 'bg-rose-500/15 text-rose-400 border border-rose-500/20'
                 }`}>
                   <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${settings.isOpen ? 'bg-emerald-400' : 'bg-rose-400'}`} />
-                  {settings.isOpen ? 'Aberto' : 'Fechado'}
+                  {settings.isOpen ? 'É só pedir!' : 'Fechado'}
                 </span>
                 <span className="text-neutral-700 text-xs">•</span>
                 <span className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider">Cardápio</span>
