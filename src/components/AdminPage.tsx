@@ -48,6 +48,15 @@ const formatBRL = (value: number) => {
 export default function AdminPage({ products, settings, orders, onNavigateToMenu, onLogout }: AdminPageProps) {
   const [activeTab, setActiveTab] = useState<'pedidos' | 'produtos' | 'configuracoes'>('pedidos');
   
+  // Custom dialog/alert state
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  } | null>(null);
+  const [customAlert, setCustomAlert] = useState<string | null>(null);
+
   // Product state
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isProductFormOpen, setIsProductFormOpen] = useState(false);
@@ -147,14 +156,20 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
   };
 
   // Delete product
-  const handleDeleteProduct = async (id: string) => {
-    if (confirm("Tem certeza que deseja excluir este produto?")) {
-      try {
-        await deleteProduct(id);
-      } catch (error) {
-        console.error("Erro ao excluir produto:", error);
+  const handleDeleteProduct = (id: string) => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Excluir Produto?",
+      message: "Tem certeza de que deseja excluir este produto do cardápio permanentemente?",
+      onConfirm: async () => {
+        try {
+          await deleteProduct(id);
+        } catch (error) {
+          console.error("Erro ao excluir produto:", error);
+        }
+        setConfirmModal(null);
       }
-    }
+    });
   };
 
   // Save general store settings
@@ -225,28 +240,34 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
     }
   };
 
-  const handleDeleteCategory = async (catId: string) => {
+  const handleDeleteCategory = (catId: string) => {
     const catProducts = products.filter(p => p.category === catId);
     let confirmMsg = "Tem certeza que deseja excluir esta categoria?";
     if (catProducts.length > 0) {
       confirmMsg = `Esta categoria possui ${catProducts.length} produtos cadastrados. Ao excluí-la, estes produtos serão agrupados em "Outros" no cardápio de clientes. Deseja continuar?`;
     }
 
-    if (confirm(confirmMsg)) {
-      const categoriesList = settings.categories || [];
-      const newCategories = categoriesList.filter(c => c.id !== catId);
+    setConfirmModal({
+      isOpen: true,
+      title: "Excluir Categoria?",
+      message: confirmMsg,
+      onConfirm: async () => {
+        const categoriesList = settings.categories || [];
+        const newCategories = categoriesList.filter(c => c.id !== catId);
 
-      try {
-        await updateStoreSettings({
-          ...settings,
-          categories: newCategories
-        });
-        setCategorySuccess('Categoria removida!');
-        setTimeout(() => setCategorySuccess(null), 3000);
-      } catch (error) {
-        console.error("Erro ao remover categoria:", error);
+        try {
+          await updateStoreSettings({
+            ...settings,
+            categories: newCategories
+          });
+          setCategorySuccess('Categoria removida!');
+          setTimeout(() => setCategorySuccess(null), 3000);
+        } catch (error) {
+          console.error("Erro ao remover categoria:", error);
+        }
+        setConfirmModal(null);
       }
-    }
+    });
   };
 
   const handleEditCategoryStart = (cat: Category) => {
@@ -827,7 +848,7 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
                           if (file) {
                             // Max 2MB file limit to prevent huge Firestore payload sizes
                             if (file.size > 2 * 1024 * 1024) {
-                              alert("Selecione uma imagem menor que 2MB para garantir o salvamento correto no banco de dados.");
+                              setCustomAlert("Selecione uma imagem menor que 2MB para garantir o salvamento correto no banco de dados.");
                               return;
                             }
                             const reader = new FileReader();
@@ -1116,6 +1137,99 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
                   </div>
                 </div>
               </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Custom Confirmation Dialog */}
+      <AnimatePresence>
+        {confirmModal && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setConfirmModal(null)}
+              className="fixed inset-0 bg-black z-[100]"
+            />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-white rounded-3xl shadow-2xl z-[101] p-6 text-center border border-slate-100"
+            >
+              <div className="w-12 h-12 bg-rose-50 border border-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle className="w-6 h-6 animate-pulse" />
+              </div>
+              
+              <h3 className="font-display font-bold text-slate-900 text-base mb-2">
+                {confirmModal.title}
+              </h3>
+              
+              <p className="text-slate-500 text-xs font-medium leading-relaxed mb-6">
+                {confirmModal.message}
+              </p>
+              
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setConfirmModal(null)}
+                  className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmModal.onConfirm}
+                  className="flex-1 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl cursor-pointer transition-colors shadow-md shadow-rose-600/10"
+                >
+                  Excluir
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Custom Alert Dialog */}
+      <AnimatePresence>
+        {customAlert && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setCustomAlert(null)}
+              className="fixed inset-0 bg-[#0c0c0d]/80 z-[100] backdrop-blur-xs"
+            />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-white rounded-3xl shadow-2xl z-[101] p-6 text-center border border-slate-100"
+            >
+              <div className="w-12 h-12 bg-amber-50 border border-amber-100 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              
+              <h3 className="font-display font-bold text-slate-900 text-base mb-2">
+                Atenção
+              </h3>
+              
+              <p className="text-slate-500 text-xs font-medium leading-relaxed mb-6">
+                {customAlert}
+              </p>
+              
+              <button
+                type="button"
+                onClick={() => setCustomAlert(null)}
+                className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl cursor-pointer transition-colors shadow-md"
+              >
+                Entendido
+              </button>
             </motion.div>
           </>
         )}
