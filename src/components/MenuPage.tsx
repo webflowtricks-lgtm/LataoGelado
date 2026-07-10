@@ -18,6 +18,7 @@ import {
   Flame, 
   Beer, 
   Wine, 
+  BottleWine,
   GlassWater, 
   PartyPopper,
   Pizza,
@@ -48,6 +49,7 @@ export const ICON_MAP: Record<string, any> = {
   Flame,
   Beer,
   Wine,
+  BottleWine,
   GlassWater,
   PartyPopper,
   UtensilsCrossed,
@@ -88,7 +90,7 @@ export function getCategoryStyle(id: string, index: number) {
 export const CATEGORY_MAP = {
   salgados: { label: 'Salgados', icon: Flame, color: 'from-amber-400 to-orange-500', bg: 'bg-orange-500/10 text-orange-400 border-orange-500/20' },
   refrigerantes: { label: 'Refrigerantes', icon: GlassWater, color: 'from-sky-400 to-blue-500', bg: 'bg-sky-500/10 text-sky-400 border-sky-500/20' },
-  vodkas: { label: 'Vodkas', icon: Wine, color: 'from-purple-400 to-indigo-500', bg: 'bg-purple-500/10 text-purple-400 border-purple-500/20' },
+  vodkas: { label: 'Vodkas', icon: BottleWine, color: 'from-purple-400 to-indigo-500', bg: 'bg-purple-500/10 text-purple-400 border-purple-500/20' },
   cervejas: { label: 'Cervejas', icon: Beer, color: 'from-yellow-400 to-amber-500', bg: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' },
   drinks: { label: 'Drinks', icon: PartyPopper, color: 'from-pink-400 to-rose-500', bg: 'bg-rose-500/10 text-rose-400 border-rose-500/20' },
   lanches: { label: 'Lanches', icon: UtensilsCrossed, color: 'from-red-400 to-red-600', bg: 'bg-red-500/10 text-red-400 border-red-500/20' }
@@ -128,7 +130,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
       const style = getCategoryStyle(cat.id, idx);
       map[cat.id] = {
         label: cat.label,
-        icon: ICON_MAP[cat.icon] || Grid,
+        icon: cat.id === 'vodkas' ? BottleWine : (ICON_MAP[cat.icon] || Grid),
         color: style.color,
         bg: style.bg
       };
@@ -1058,7 +1060,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                 </div>
               </div>
               <div className="flex items-center space-x-1.5 bg-black text-white hover:bg-neutral-900 py-2.5 px-4 rounded-2xl font-black text-xs">
-                <span>Ver carrinho</span>
+                <span>Ver Pedidos</span>
                 <ChevronRight className="w-4 h-4 text-yellow-400" />
               </div>
             </button>

@@ -5,7 +5,7 @@ export const DEFAULT_CATEGORIES: Category[] = [
   { id: "lanches", label: "Lanches", icon: "UtensilsCrossed" },
   { id: "drinks", label: "Drinks", icon: "PartyPopper" },
   { id: "cervejas", label: "Cervejas", icon: "Beer" },
-  { id: "vodkas", label: "Vodkas", icon: "Wine" },
+  { id: "vodkas", label: "Vodkas", icon: "BottleWine" },
   { id: "refrigerantes", label: "Refrigerantes", icon: "GlassWater" }
 ];
 
