@@ -100,26 +100,17 @@ export function subscribeProducts(onUpdate: (products: Product[]) => void) {
       }
     } else {
       const items: Product[] = [];
-      const batchToUpdate = writeBatch(db);
-      let needsUpdate = false;
 
       snapshot.forEach((documentSnap) => {
         const data = documentSnap.data() as Product;
         const initialMatch = INITIAL_PRODUCTS.find(p => p.id === documentSnap.id);
         
         if (initialMatch && !data.image) {
-          const dRef = doc(colRef, documentSnap.id);
-          batchToUpdate.set(dRef, { image: initialMatch.image }, { merge: true });
-          needsUpdate = true;
           items.push({ ...data, image: initialMatch.image, id: documentSnap.id });
         } else {
           items.push({ ...data, id: documentSnap.id });
         }
       });
-
-      if (needsUpdate) {
-        batchToUpdate.commit().catch(err => console.error("Erro no auto-update de imagens:", err));
-      }
 
       // Ordena por ordem de exibição e depois por nome
       items.sort((a, b) => {

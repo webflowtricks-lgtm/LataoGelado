@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Store, Loader2, Lock } from 'lucide-react';
 import MenuPage from './components/MenuPage';
@@ -12,6 +12,18 @@ export default function App() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [path, setPath] = useState(window.location.pathname);
+  const [password, setPassword] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const isPainel = path.startsWith('/painel');
+
+  // Reset authentication when leaving /painel
+  useEffect(() => {
+    if (!isPainel) {
+      setIsAuthenticated(false);
+      setPassword('');
+    }
+  }, [isPainel]);
 
   // Hook to capture navigation history changes programmatically
   useEffect(() => {
@@ -114,8 +126,44 @@ export default function App() {
     );
   }
 
-  // Determine path routing
-  const isPainel = path.startsWith('/painel');
+  const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setPassword(val);
+    if (val === 'latao@26@') {
+      setIsAuthenticated(true);
+    }
+  };
+
+  const handlePasswordSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (password === 'latao@26@') {
+      setIsAuthenticated(true);
+    }
+  };
+
+  if (isPainel && !isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center p-6 select-none">
+        <form onSubmit={handlePasswordSubmit} className="w-full max-w-xs text-center space-y-4">
+          <input
+            type="password"
+            value={password}
+            onChange={handlePasswordChange}
+            placeholder="Digite a senha"
+            autoFocus
+            className="w-full bg-neutral-900 border border-neutral-800 rounded-2xl px-5 py-3.5 text-center text-yellow-400 placeholder-neutral-600 focus:outline-none focus:ring-1 focus:ring-yellow-400/30 transition-all text-lg tracking-widest font-bold"
+          />
+          <button 
+            type="button"
+            onClick={() => navigateTo('/')}
+            className="text-[10px] text-zinc-500 hover:text-zinc-400 transition-colors font-bold uppercase tracking-wider block mx-auto cursor-pointer"
+          >
+            Voltar ao Cardápio
+          </button>
+        </form>
+      </div>
+    );
+  }
 
   return (
     <AnimatePresence mode="wait">
