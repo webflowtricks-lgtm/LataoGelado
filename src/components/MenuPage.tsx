@@ -409,6 +409,17 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
               {/* Background flare element */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/20 rounded-full blur-[70px] pointer-events-none group-hover:bg-white/30 transition-colors duration-300" />
               
+              {/* Custom Watermark Logo behind content at 6% opacity (dark/black filter for yellow background) */}
+              <div className="absolute inset-0 rounded-[32px] overflow-hidden pointer-events-none z-0">
+                <img 
+                  src="https://i.ibb.co/2wtGGnh/logo2.png" 
+                  alt="" 
+                  className="absolute bottom-[-16px] right-[-16px] w-28 h-28 object-contain logo-destaque-watermark"
+                  style={{ filter: 'brightness(0)', opacity: 0.06 }}
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+              
               <div className="flex-1 pr-4 z-10">
               
                 
