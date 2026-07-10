@@ -586,17 +586,28 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
 
             return (
               <section key={cat.id} className="space-y-4">
-                {/* Section Title Header */}
-                <div className="flex items-center space-x-2.5 pb-2.5 border-b border-neutral-900">
-                  <div className={`p-1.5 rounded-xl border ${catValue.bg}`}>
-                    <CategoryIcon className="w-4 h-4" />
+                {/* Section Title Header with Torn Paper Background */}
+                <div className="relative inline-flex items-center min-h-[58px] pl-5 pr-10 py-3.5 mb-1 select-none overflow-visible">
+                  {/* Torn Paper Background Image with drop shadow for realism */}
+                  <img 
+                    src="https://i.ibb.co/PzYdh8j3/paper.png" 
+                    alt="" 
+                    className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] z-0"
+                    referrerPolicy="no-referrer"
+                  />
+                  
+                  {/* Content over the paper */}
+                  <div className="relative z-10 flex items-center space-x-2.5">
+                    <div className="p-1.5 rounded-full bg-neutral-950 border border-neutral-800 text-[#ff6b00] flex items-center justify-center shadow-md">
+                      <CategoryIcon className="w-4 h-4" />
+                    </div>
+                    <h2 className="text-base sm:text-lg font-display font-black text-neutral-950 tracking-tight">
+                      {cat.label}
+                    </h2>
+                    <span className="text-zinc-300 text-[10px] font-black bg-neutral-950/90 px-2.5 py-0.5 rounded-full border border-neutral-800/10 shadow-sm">
+                      {catProducts.length} {catProducts.length === 1 ? 'item' : 'itens'}
+                    </span>
                   </div>
-                  <h2 className="text-base font-display font-black text-white">
-                    {cat.label}
-                  </h2>
-                  <span className="text-zinc-400 text-[10px] font-bold bg-[#17171a] px-2 py-0.5 rounded-full border border-neutral-900">
-                    {catProducts.length} {catProducts.length === 1 ? 'item' : 'itens'}
-                  </span>
                 </div>
 
                 {/* Grid of customized vertical mockup-like card displays */}
