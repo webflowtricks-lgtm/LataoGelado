@@ -439,8 +439,8 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                 </AnimatePresence>
               </div>
 
-              {/* Overlapping Floating Dish Preview - Rounded Rectangle Vertical aspect ratio */}
-              <div className="relative shrink-0 z-10 w-28 h-36 md:w-36 md:h-44 rounded-[24px] overflow-hidden border-2 border-orange-500/20 shadow-2xl transition-transform duration-500 group-hover:scale-105 group-hover:rotate-3">
+              {/* Overlapping Floating Dish Preview - Rounded Rectangle wider aspect ratio */}
+              <div className="relative shrink-0 z-10 w-36 h-44 md:w-48 md:h-56 rounded-[32px] overflow-hidden border-2 border-orange-500/20 shadow-2xl transition-transform duration-500 group-hover:scale-105 group-hover:rotate-3">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeFeatured.id}
