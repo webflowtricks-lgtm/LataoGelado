@@ -740,7 +740,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                   
                   {/* Content over the paper */}
                   <div className="relative z-10 flex items-center space-x-2.5">
-                    <div className="p-1.5 rounded-full bg-neutral-950 border border-neutral-800 text-yellow-400 flex items-center justify-center shadow-md">
+                    <div className="p-1.5 rounded-full bg-neutral-950 border border-neutral-800 text-[#ff6b00] flex items-center justify-center shadow-md">
                       <CategoryIcon className="w-4 h-4" />
                     </div>
                     <h2 className="text-base sm:text-lg font-naughty font-black text-neutral-950 tracking-tight menu-category-title">
@@ -814,7 +814,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                           {product.featured && (
                             <div className="flex items-center justify-center space-x-1 mt-2.5 text-[10px] text-yellow-400/95 font-bold bg-yellow-400/5 py-1 px-2.5 rounded-full border border-yellow-400/10 max-w-max mx-auto">
                               <Crown className="w-3 h-3 fill-yellow-400" />
-                              <span>Destaques do Latão</span>
+                              <span>Destaque</span>
                             </div>
                           )}
                         </div>
