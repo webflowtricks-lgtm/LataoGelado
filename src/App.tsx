@@ -107,7 +107,7 @@ export default function App() {
           
           <p className="text-zinc-400 text-xs mt-2 flex items-center justify-center gap-1.5 font-medium">
             <Loader2 className="w-3.5 h-3.5 animate-spin text-yellow-400" />
-            <span>Sincronizando com o banco Firestore</span>
+            <span>Carregando...</span>
           </p>
         </motion.div>
       </div>
