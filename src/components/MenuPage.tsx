@@ -136,6 +136,22 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
     return map;
   }, [categoriesWithProducts]);
 
+  const allCategories = useMemo(() => {
+    return [
+      { id: 'todos', label: 'Todos', icon: Grid },
+      ...categoriesWithProducts.map(cat => ({
+        id: cat.id,
+        label: cat.label,
+        icon: categoryMap[cat.id]?.icon || Grid
+      }))
+    ];
+  }, [categoriesWithProducts, categoryMap]);
+
+  const selectedIndex = useMemo(() => {
+    const idx = allCategories.findIndex(c => c.id === activeCategory);
+    return idx === -1 ? 0 : idx;
+  }, [allCategories, activeCategory]);
+
   // New states for the immersive mockup-like product detailed view
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [tempQuantity, setTempQuantity] = useState<number>(1);
@@ -535,41 +551,125 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">Categorias</h3>
-              <span className="text-[10px] font-bold text-yellow-400 hover:underline cursor-pointer" onClick={() => setActiveCategory('todos')}>Ver Tudo</span>
+              <span className="text-[10px] font-bold text-yellow-400 hover:underline cursor-pointer select-none" onClick={() => setActiveCategory('todos')}>Ver Tudo</span>
             </div>
             
-            <div className="flex items-center space-x-2.5 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-none scroll-smooth">
-              <button
-                onClick={() => setActiveCategory('todos')}
-                className={`px-4.5 py-2.5 rounded-2xl text-xs font-bold border transition-all shrink-0 cursor-pointer ${
-                  activeCategory === 'todos'
-                    ? 'bg-yellow-400 text-black border-yellow-400 shadow-lg shadow-yellow-500/10 scale-105'
-                    : 'bg-[#17171a] text-zinc-400 border-neutral-900 hover:border-neutral-800 hover:text-white'
-                }`}
-              >
-                Todos
-              </button>
-              
-              {categoriesWithProducts.map((cat) => {
-                const mapInfo = categoryMap[cat.id];
-                if (!mapInfo) return null;
-                const IconComponent = mapInfo.icon;
-                const isSelected = activeCategory === cat.id;
-                return (
-                  <button
-                    key={cat.id}
-                    onClick={() => setActiveCategory(cat.id)}
-                    className={`flex items-center space-x-2 px-4 py-2.5 rounded-2xl text-xs font-bold border transition-all shrink-0 cursor-pointer ${
-                      isSelected
-                        ? 'bg-yellow-400 text-black border-yellow-400 shadow-lg shadow-yellow-500/10 scale-105'
-                        : 'bg-[#17171a] text-zinc-400 border-neutral-900 hover:border-neutral-800 hover:text-white'
-                    }`}
-                  >
-                    <IconComponent className={`w-3.5 h-3.5 ${isSelected ? 'text-black' : 'text-zinc-500'}`} />
-                    <span>{cat.label}</span>
-                  </button>
-                );
-              })}
+            <div className="relative w-full h-[145px] overflow-hidden select-none bg-neutral-950/20 rounded-[28px] border border-neutral-900/30">
+              {/* Left & Right fading masks for premium visual depth */}
+              <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[#0c0c0d] to-transparent z-20 pointer-events-none" />
+              <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#0c0c0d] to-transparent z-20 pointer-events-none" />
+
+              {/* Golden Dashed Arc Line in the background */}
+              <div className="absolute top-[32px] inset-x-0 flex justify-center pointer-events-none select-none overflow-visible">
+                <svg width="340" height="100" viewBox="0 0 340 100" fill="none" className="overflow-visible opacity-35">
+                  <path 
+                    d="M -60 90 Q 170 -28 400 90" 
+                    stroke="#eab308" 
+                    strokeWidth="2" 
+                    strokeDasharray="4 4" 
+                    fill="none" 
+                  />
+                </svg>
+              </div>
+
+              {/* Category Items */}
+              <div className="absolute left-1/2 top-0 -translate-x-1/2 w-[340px] h-full relative overflow-visible">
+                {allCategories.map((cat, i) => {
+                  // Calculate wrapped shortest circular path index difference
+                  const total = allCategories.length;
+                  let diff = i - selectedIndex;
+                  if (diff > total / 2) diff -= total;
+                  if (diff < -total / 2) diff += total;
+
+                  // Calculate styles and coordinates
+                  const xOffset = diff * 85; // 85px horizontal spacing
+                  const yOffset = (diff * diff) * 12; // curve height offset
+                  
+                  let scale = 1;
+                  let opacity = 1;
+                  let zIndex = 10;
+                  const isSelected = activeCategory === cat.id;
+
+                  if (diff === 0) {
+                    scale = 1.25;
+                    opacity = 1;
+                    zIndex = 30;
+                  } else if (Math.abs(diff) === 1) {
+                    scale = 0.95;
+                    opacity = 0.85;
+                    zIndex = 20;
+                  } else if (Math.abs(diff) === 2) {
+                    scale = 0.75;
+                    opacity = 0.5;
+                    zIndex = 10;
+                  } else {
+                    scale = 0.5;
+                    opacity = 0;
+                    zIndex = 0;
+                  }
+
+                  const IconComponent = cat.icon;
+
+                  return (
+                    <motion.div
+                      key={cat.id}
+                      style={{
+                        position: 'absolute',
+                        left: '170px', // Center offset
+                        top: '18px',
+                        transformOrigin: 'center center',
+                      }}
+                      animate={{
+                        x: xOffset - 28, // Subtract half of item width (28px) for perfect centering
+                        y: yOffset,
+                        scale,
+                        opacity,
+                        zIndex,
+                      }}
+                      transition={{
+                        type: 'spring',
+                        stiffness: 260,
+                        damping: 26,
+                      }}
+                      className="absolute flex flex-col items-center justify-center cursor-pointer group"
+                      onClick={() => setActiveCategory(cat.id)}
+                    >
+                      {/* Circular Button */}
+                      <div
+                        className={`w-14 h-14 rounded-full flex items-center justify-center border transition-all ${
+                          isSelected
+                            ? 'bg-yellow-400 text-black border-yellow-400 shadow-xl shadow-yellow-500/25'
+                            : 'bg-[#17171a] text-zinc-400 border-neutral-900/60 hover:border-neutral-800 hover:text-white'
+                        }`}
+                      >
+                        <IconComponent className={`w-6 h-6 ${isSelected ? 'text-black' : 'text-zinc-400 group-hover:text-zinc-200'}`} />
+                      </div>
+
+                      {/* Label text */}
+                      <span
+                        className={`text-[10px] font-black uppercase tracking-tight mt-2 text-center transition-colors whitespace-nowrap ${
+                          isSelected ? 'text-yellow-400' : 'text-zinc-500 group-hover:text-zinc-400'
+                        }`}
+                      >
+                        {cat.label}
+                      </span>
+
+                      {/* Bottom active line capsule */}
+                      {isSelected && (
+                        <motion.div
+                          layoutId="activeCategoryLine"
+                          className="w-5 h-1 bg-yellow-400 rounded-full mt-1 shadow-[0_2px_6px_rgba(234,179,8,0.4)]"
+                          transition={{
+                            type: 'spring',
+                            stiffness: 260,
+                            damping: 26,
+                          }}
+                        />
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
