@@ -495,7 +495,7 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
                       return p.category === cat.id;
                     });
 
-                    const Icon = ICON_MAP[cat.icon] || Grid;
+                    const Icon = cat.id === 'vodkas' ? (ICON_MAP.BottleWine || Grid) : (ICON_MAP[cat.icon] || Grid);
                     const style = getCategoryStyle(cat.id, idx);
 
                     return (
@@ -1075,7 +1075,7 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
                   
                   <div className="space-y-1.5">
                     {(settings.categories || []).map((cat, idx) => {
-                      const IconComp = ICON_MAP[cat.icon] || Grid;
+                      const IconComp = cat.id === 'vodkas' ? (ICON_MAP.BottleWine || Grid) : (ICON_MAP[cat.icon] || Grid);
                       const style = getCategoryStyle(cat.id, idx);
                       const catProducts = products.filter(p => p.category === cat.id);
                       

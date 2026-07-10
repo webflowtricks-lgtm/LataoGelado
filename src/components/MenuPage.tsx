@@ -29,7 +29,9 @@ import {
   Cake,
   Cookie,
   Apple,
-  Grid
+  Grid,
+  Martini,
+  CupSoda
 } from 'lucide-react';
 import { Product, StoreSettings, CartItem } from '../types';
 import { createOrder } from '../dbService';
@@ -61,7 +63,9 @@ export const ICON_MAP: Record<string, any> = {
   Cake,
   Cookie,
   Apple,
-  Grid
+  Grid,
+  Martini,
+  CupSoda
 };
 
 const PRESET_STYLES = [
