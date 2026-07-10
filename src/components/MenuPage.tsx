@@ -740,7 +740,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                   
                   {/* Content over the paper */}
                   <div className="relative z-10 flex items-center space-x-2.5">
-                    <div className="p-1.5 rounded-full bg-neutral-950 border border-neutral-800 text-[#ff6b00] flex items-center justify-center shadow-md">
+                    <div className="p-1.5 rounded-full bg-neutral-950 border border-neutral-800 text-yellow-400 flex items-center justify-center shadow-md">
                       <CategoryIcon className="w-4 h-4" />
                     </div>
                     <h2 className="text-base sm:text-lg font-naughty font-black text-neutral-950 tracking-tight menu-category-title">
