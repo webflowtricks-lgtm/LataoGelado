@@ -189,6 +189,9 @@ export default function App() {
             </label>
           </div>
 
+          {/* Hidden submit button to guarantee Enter key submission without a visible button */}
+          <button type="submit" className="hidden" aria-hidden="true" />
+
           <button 
             type="button"
             onClick={() => navigateTo('/')}

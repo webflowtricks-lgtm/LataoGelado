@@ -744,7 +744,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-[#0c0c0d] overflow-y-auto"
+              className="fixed inset-0 z-50 bg-[#0c0c0d] overflow-y-auto no-scrollbar"
             >
               {/* Top Banner Image Section - Full Screen Width, Aspect Square */}
               <div className="relative w-full aspect-square md:max-h-[450px] shrink-0 overflow-hidden bg-neutral-900">
