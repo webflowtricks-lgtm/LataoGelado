@@ -78,22 +78,37 @@ export default function App() {
   // Render elegant loading splash
   if (loading || !settings) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
+      <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center p-6">
         <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="text-center space-y-4"
+          className="text-center flex flex-col items-center max-w-sm"
         >
-          <div className="inline-flex p-4 bg-slate-900 text-white rounded-2xl shadow-xl animate-bounce mb-2">
-            <Store className="w-8 h-8" />
+          <div className="relative w-24 h-24 mb-6 flex items-center justify-center">
+            <motion.img 
+              src="https://i.ibb.co/2wtGGnh/logo2.png" 
+              alt="Logo" 
+              className="w-20 h-20 object-contain"
+              animate={{ 
+                scale: [1, 1.08, 1],
+              }}
+              transition={{
+                duration: 2.2,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+              referrerPolicy="no-referrer"
+            />
           </div>
-          <h2 className="text-lg font-display font-bold text-slate-800 tracking-tight">
-            Carregando o Cardápio Digital...
+          
+          <h2 className="text-xl font-display font-extrabold text-white tracking-tight">
+            Carregando cardápio...
           </h2>
-          <div className="flex items-center justify-center space-x-2 text-slate-400 text-xs font-semibold">
-            <Loader2 className="w-4 h-4 animate-spin text-slate-500" />
+          
+          <p className="text-zinc-400 text-xs mt-2 flex items-center justify-center gap-1.5 font-medium">
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-yellow-400" />
             <span>Sincronizando com o banco Firestore</span>
-          </div>
+          </p>
         </motion.div>
       </div>
     );
