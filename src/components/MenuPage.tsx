@@ -351,22 +351,13 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
         <div className="flex justify-between items-center mb-6">
           <div>
             <h2 className="text-2xl font-display font-extrabold text-white tracking-tight">
-              Olá, Amigo! 👋
+              Bem Vindo(a)!
             </h2>
             <p className="text-zinc-400 text-xs font-medium mt-1">
-              Pronto para fazer seu pedido de hoje?
+              ❄️ Aviso importante: abrir este cardápio pode dar vontade de pedir tudo. 🍻 Confira nossas bebidas, espetinhos e doces e promoções
             </p>
-          </div>
-          {/* Mockup Profile Avatar */}
-          <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-tr from-yellow-400 to-amber-500 p-0.5 shadow-lg shadow-yellow-500/10">
-            <img 
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" 
-              alt="Cliente" 
-              className="w-full h-full object-cover rounded-[14px]"
-              referrerPolicy="no-referrer"
-            />
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-[#0c0c0d]" />
-          </div>
+          </div> 
+         
         </div>
 
         {/* Dynamic "Destaque do Dia" Banner (Chicken Baked Card style on Left Screen) */}
@@ -384,7 +375,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
             <div className="flex-1 pr-4 z-10">
               <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 bg-yellow-400/10 text-yellow-400 text-[10px] font-black uppercase tracking-widest rounded-full mb-3.5">
                 <Sparkles className="w-3 h-3" />
-                <span>Destaques Premium</span>
+                <span>Destaques do Latão</span>
               </div>
               
               <AnimatePresence mode="wait">
@@ -491,12 +482,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
           <div className="p-2.5 bg-neutral-900 rounded-xl text-yellow-400 shrink-0">
             <MessageSquare className="w-5 h-5" />
           </div>
-          <div>
-            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Pedidos via WhatsApp</p>
-            <p className="text-xs text-zinc-300 font-semibold mt-0.5 leading-relaxed">
-              Adicione seus itens e finalize enviando para o WhatsApp. A taxa de entrega será calculada e combinada no chat de acordo com o seu endereço informado!
-            </p>
-          </div>
+          
         </div>
 
         {/* Floating Success Alert */}
@@ -792,7 +778,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                         <span>•</span>
                         <span className="flex items-center space-x-1 text-yellow-400">
                           <Crown className="w-3.5 h-3.5 fill-yellow-400" />
-                          <span>Premium Destaque</span>
+                          <span>Destaques do Latão</span>
                         </span>
                       </>
                     )}
@@ -907,7 +893,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                 </div>
               </div>
               <div className="flex items-center space-x-1.5 bg-black text-white hover:bg-neutral-900 py-2.5 px-4 rounded-2xl font-black text-xs">
-                <span>Avançar</span>
+                <span>Ver carrinho</span>
                 <ChevronRight className="w-4 h-4 text-yellow-400" />
               </div>
             </button>
@@ -1064,7 +1050,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                   </span>
                 </button>
                 <p className="text-center text-[10px] text-zinc-500 font-bold mt-3">
-                  O pedido será enviado formatado direto para o WhatsApp do estabelecimento.
+              
                 </p>
               </div>
             </motion.div>
