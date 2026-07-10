@@ -612,6 +612,17 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                           !product.available ? 'opacity-60' : ''
                         } ${quantity > 0 ? 'border-yellow-400' : 'border-neutral-900'}`}
                       >
+                        {/* Custom White Outline Watermark Logo behind content at 6% opacity */}
+                        <div className="absolute inset-0 rounded-[32px] overflow-hidden pointer-events-none z-0">
+                          <img 
+                            src="https://i.ibb.co/2wtGGnh/logo2.png" 
+                            alt="" 
+                            className="absolute bottom-[-16px] right-[-16px] w-28 h-28 object-contain"
+                            style={{ filter: 'brightness(0) invert(1)', opacity: 0.06 }}
+                            referrerPolicy="no-referrer"
+                          />
+                        </div>
+
                         {/* Golden Crown Featured Badge */}
                         {product.featured && (
                           <div className="absolute top-3.5 right-3.5 z-10 p-1.5 bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 rounded-full shadow-md shadow-yellow-500/10">
@@ -620,7 +631,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                         )}
 
                         {/* Centered Circular Gourmet Food Plate overlapping the top border */}
-                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-24 h-24 rounded-full overflow-hidden border-4 border-[#17171a] shadow-xl bg-neutral-900 flex items-center justify-center transition-transform hover:scale-110 duration-300">
+                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-24 h-24 rounded-full overflow-hidden border-4 border-[#17171a] shadow-xl bg-neutral-900 flex items-center justify-center transition-transform hover:scale-110 duration-300 z-10">
                           {product.image ? (
                             <img 
                               src={product.image} 
@@ -636,7 +647,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                         </div>
 
                         {/* Title and Description details */}
-                        <div className="text-center mt-2 flex-1 flex flex-col justify-between">
+                        <div className="text-center mt-2 flex-1 flex flex-col justify-between relative z-10">
                           <div>
                             <h3 className="font-display font-extrabold text-white text-sm sm:text-base leading-tight line-clamp-1">
                               {product.name}
@@ -656,7 +667,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                         </div>
 
                         {/* Bottom Price & Add Stepper */}
-                        <div className="mt-4 pt-3 border-t border-neutral-900/55 flex items-center justify-between w-full">
+                        <div className="mt-4 pt-3 border-t border-neutral-900/55 flex items-center justify-between w-full relative z-10">
                           <span className="text-sm sm:text-base font-black text-white">
                             {formatBRL(product.price)}
                           </span>
@@ -771,21 +782,14 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                   </h3>
 
                   {/* Attributes line */}
-                  <div className="flex items-center space-x-4 mt-3.5 text-xs font-bold text-zinc-400">
-                    <span className="flex items-center space-x-1">
-                      <span>⭐ Classificação:</span>
-                      <span className="text-zinc-200">Popular</span>
-                    </span>
-                    {selectedProduct.featured && (
-                      <>
-                        <span>•</span>
-                        <span className="flex items-center space-x-1 text-yellow-400">
-                          <Crown className="w-3.5 h-3.5 fill-yellow-400" />
-                          <span>Premium Destaque</span>
-                        </span>
-                      </>
-                    )}
-                  </div>
+                  {selectedProduct.featured && (
+                    <div className="flex items-center mt-3.5 text-xs font-bold text-zinc-400">
+                      <span className="flex items-center space-x-1 text-yellow-400">
+                        <Crown className="w-3.5 h-3.5 fill-yellow-400" />
+                        <span>Destaques do Latão</span>
+                      </span>
+                    </div>
+                  )}
 
                   {/* Description text */}
                   <p className="text-zinc-300 text-xs sm:text-sm leading-relaxed mt-5 font-semibold">
