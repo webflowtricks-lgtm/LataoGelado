@@ -779,11 +779,22 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
               </div>
 
               {/* Naturally Flowing Details Content Card - Overlaps the bottom of the image slightly with a beautiful rounded sheet */}
-              <div className="w-full max-w-2xl mx-auto bg-[#121214] rounded-t-[32px] p-6 sm:p-8 flex flex-col flex-1 pb-12 mt-[-32px] relative z-10 shadow-[0_-15px_30px_rgba(0,0,0,0.8)] border-t border-neutral-850">
-                {/* Horizontal handle indicator */}
-                <div className="w-12 h-1 bg-neutral-800 rounded-full mx-auto mb-6 shrink-0" />
+              <div className="w-full max-w-2xl mx-auto bg-[#121214] rounded-t-[32px] overflow-hidden p-6 sm:p-8 flex flex-col flex-1 pb-12 mt-[-32px] relative z-10 shadow-[0_-15px_30px_rgba(0,0,0,0.8)] border-t border-neutral-850">
+                {/* Custom White Outline Watermark Logo behind content at 6% opacity */}
+                <div className="absolute inset-0 rounded-t-[32px] overflow-hidden pointer-events-none z-0">
+                  <img 
+                    src="https://i.ibb.co/2wtGGnh/logo2.png" 
+                    alt="" 
+                    className="absolute bottom-[-20px] right-[-20px] w-48 h-48 object-contain"
+                    style={{ filter: 'brightness(0) invert(1)', opacity: 0.06 }}
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
 
-                <div className="flex-1">
+                {/* Horizontal handle indicator */}
+                <div className="w-12 h-1 bg-neutral-800 rounded-full mx-auto mb-6 shrink-0 relative z-10" />
+
+                <div className="flex-1 relative z-10">
                   {/* Category Pill Tag & Product Code */}
                   <div className="flex items-center justify-between mb-4">
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-yellow-400/10 text-yellow-400 border border-yellow-400/20">
@@ -814,7 +825,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                 </div>
 
                 {/* Bottom Action Bar */}
-                <div className="mt-8 pt-6 border-t border-neutral-900/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
+                <div className="mt-8 pt-6 border-t border-neutral-900/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0 relative z-10">
                   <div>
                     <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Preço Unitário</p>
                     <p className="text-xl sm:text-2xl font-black text-white mt-1">
