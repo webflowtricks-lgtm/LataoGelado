@@ -13,15 +13,21 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [path, setPath] = useState(window.location.pathname);
   const [password, setPassword] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [rememberDevice, setRememberDevice] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('latao_remember') === 'true';
+  });
 
   const isPainel = path.startsWith('/painel');
 
-  // Reset authentication when leaving /painel
+  // Reset authentication when leaving /painel, unless remember device is active
   useEffect(() => {
     if (!isPainel) {
-      setIsAuthenticated(false);
-      setPassword('');
+      const isRemembered = localStorage.getItem('latao_remember') === 'true';
+      if (!isRemembered) {
+        setIsAuthenticated(false);
+        setPassword('');
+      }
     }
   }, [isPainel]);
 
@@ -131,6 +137,11 @@ export default function App() {
     setPassword(val);
     if (val === 'latao@26@') {
       setIsAuthenticated(true);
+      if (rememberDevice) {
+        localStorage.setItem('latao_remember', 'true');
+      } else {
+        localStorage.removeItem('latao_remember');
+      }
     }
   };
 
@@ -138,6 +149,11 @@ export default function App() {
     e.preventDefault();
     if (password === 'latao@26@') {
       setIsAuthenticated(true);
+      if (rememberDevice) {
+        localStorage.setItem('latao_remember', 'true');
+      } else {
+        localStorage.removeItem('latao_remember');
+      }
     }
   };
 
@@ -153,10 +169,30 @@ export default function App() {
             autoFocus
             className="w-full bg-neutral-900 border border-neutral-800 rounded-2xl px-5 py-3.5 text-center text-yellow-400 placeholder-neutral-600 focus:outline-none focus:ring-1 focus:ring-yellow-400/30 transition-all text-lg tracking-widest font-bold"
           />
+          
+          <div className="flex items-center justify-center space-x-2 py-1 select-none">
+            <input
+              type="checkbox"
+              id="remember"
+              checked={rememberDevice}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                setRememberDevice(checked);
+                if (!checked) {
+                  localStorage.removeItem('latao_remember');
+                }
+              }}
+              className="w-4 h-4 bg-neutral-900 border-neutral-800 rounded text-yellow-400 focus:ring-0 focus:ring-offset-0 cursor-pointer accent-yellow-400"
+            />
+            <label htmlFor="remember" className="text-xs text-zinc-400 font-medium cursor-pointer">
+              Lembrar este dispositivo
+            </label>
+          </div>
+
           <button 
             type="button"
             onClick={() => navigateTo('/')}
-            className="text-[10px] text-zinc-500 hover:text-zinc-400 transition-colors font-bold uppercase tracking-wider block mx-auto cursor-pointer"
+            className="text-[10px] text-zinc-500 hover:text-zinc-400 transition-colors font-bold uppercase tracking-wider block mx-auto cursor-pointer pt-2"
           >
             Voltar ao Cardápio
           </button>
@@ -180,6 +216,11 @@ export default function App() {
             settings={settings}
             orders={orders}
             onNavigateToMenu={() => navigateTo('/')}
+            onLogout={() => {
+              localStorage.removeItem('latao_remember');
+              setIsAuthenticated(false);
+              navigateTo('/');
+            }}
           />
         </motion.div>
       ) : (

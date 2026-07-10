@@ -320,7 +320,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                 referrerPolicy="no-referrer"
               />
             </div>
-            <div onDoubleClick={onNavigateToAdmin} className="cursor-default" title="Dê duplo clique para o painel">
+            <div className="cursor-default">
               <h1 className="text-lg font-display font-black tracking-tight text-white leading-tight">
                 {settings.storeName}
               </h1>

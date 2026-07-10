@@ -21,7 +21,8 @@ import {
   Tags,
   ChevronDown,
   Crown,
-  Upload
+  Upload,
+  LogOut
 } from 'lucide-react';
 import { Product, StoreSettings, Order, ProductCategory, Category } from '../types';
 import { 
@@ -37,13 +38,14 @@ interface AdminPageProps {
   settings: StoreSettings;
   orders: Order[];
   onNavigateToMenu: () => void;
+  onLogout?: () => void;
 }
 
 const formatBRL = (value: number) => {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 };
 
-export default function AdminPage({ products, settings, orders, onNavigateToMenu }: AdminPageProps) {
+export default function AdminPage({ products, settings, orders, onNavigateToMenu, onLogout }: AdminPageProps) {
   const [activeTab, setActiveTab] = useState<'pedidos' | 'produtos' | 'configuracoes'>('pedidos');
   
   // Product state
@@ -305,9 +307,20 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
             </div>
           </div>
           
-          <div className="flex items-center space-x-2 text-xs font-semibold bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
-            <Store className="w-4 h-4 text-slate-400" />
-            <span className="text-slate-200">{settings.storeName}</span>
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 text-xs font-semibold bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+              <Store className="w-4 h-4 text-slate-400" />
+              <span className="text-slate-200">{settings.storeName}</span>
+            </div>
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="p-2 bg-slate-800 hover:bg-slate-750 text-slate-400 hover:text-rose-400 rounded-lg transition-colors cursor-pointer border border-slate-700"
+                title="Sair do Painel"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
       </header>
