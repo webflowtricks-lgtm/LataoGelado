@@ -348,16 +348,15 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
       <main className="max-w-4xl mx-auto px-4 mt-6">
         
         {/* Welcome Section (Mockup Header Profile Style) */}
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h2 className="text-2xl font-display font-extrabold text-white tracking-tight">
+        <div className="flex justify-center items-center mb-6 text-center">
+          <div className="w-full">
+            <h2 className="text-4xl font-naughty text-yellow-400 tracking-wider">
               Bem Vindo(a)!
             </h2>
-            <p className="text-zinc-400 text-xs font-medium mt-1">
-              ❄️ Aviso importante: abrir este cardápio pode dar vontade de pedir tudo. 🍻 Confira nossas bebidas, espetinhos e doces e promoções
+            <p className="text-zinc-400 text-xs font-medium mt-2 max-w-lg mx-auto">
+              <strong className="highlight">Aviso importante: </strong>{" "} abrir este cardápio pode dar vontade de pedir tudo. 🍻 Confira nossas bebidas, espetinhos e doces e promoções
             </p>
           </div> 
-         
         </div>
 
         {/* Dynamic "Destaque do Dia" Banner (Chicken Baked Card style on Left Screen) */}
@@ -657,8 +656,8 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                         </div>
 
                         {/* Bottom Price & Add Stepper */}
-                        <div className="mt-4 pt-3 border-t border-neutral-900/55 flex flex-col items-center gap-2">
-                          <span className="text-sm font-black text-white">
+                        <div className="mt-4 pt-3 border-t border-neutral-900/55 flex items-center justify-between w-full">
+                          <span className="text-sm sm:text-base font-black text-white">
                             {formatBRL(product.price)}
                           </span>
 
@@ -668,17 +667,21 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                                 e.stopPropagation();
                                 setSelectedProduct(product);
                               }}
-                              className={`w-full py-2 px-3 rounded-xl text-[11px] font-black transition-colors flex items-center justify-center space-x-1.5 cursor-pointer ${
+                              className={`w-9 h-9 flex items-center justify-center transition-all duration-200 active:scale-90 hover:scale-105 cursor-pointer rounded-tl-[16px] rounded-br-[16px] rounded-tr-[4px] rounded-bl-[4px] ${
                                 quantity > 0 
-                                  ? 'bg-yellow-400/10 text-yellow-400 border border-yellow-400/30' 
-                                  : 'bg-neutral-900 border border-neutral-850 text-zinc-300 hover:text-white hover:bg-neutral-850'
+                                  ? 'bg-yellow-400 text-black font-extrabold text-[11px] shadow-lg shadow-yellow-500/20' 
+                                  : 'bg-yellow-400 hover:bg-yellow-500 text-black shadow-lg shadow-yellow-500/10'
                               }`}
+                              title={quantity > 0 ? `${quantity} no carrinho` : 'Adicionar ao carrinho'}
                             >
-                              <Plus className="w-3.5 h-3.5 text-yellow-400" />
-                              <span>{quantity > 0 ? `${quantity} no carrinho` : 'Adicionar'}</span>
+                              {quantity > 0 ? (
+                                <span>{quantity}x</span>
+                              ) : (
+                                <Plus className="w-4 h-4 text-black stroke-[3px]" />
+                              )}
                             </button>
                           ) : (
-                            <span className="px-2 py-0.5 bg-neutral-900 text-zinc-500 rounded-lg font-bold text-[9px] uppercase tracking-wide border border-neutral-850">
+                            <span className="px-2 py-1 bg-neutral-900 text-zinc-500 rounded-lg font-bold text-[9px] uppercase tracking-wide border border-neutral-850">
                               Esgotado
                             </span>
                           )}
@@ -778,7 +781,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                         <span>•</span>
                         <span className="flex items-center space-x-1 text-yellow-400">
                           <Crown className="w-3.5 h-3.5 fill-yellow-400" />
-                          <span>Destaques do Latão</span>
+                          <span>Premium Destaque</span>
                         </span>
                       </>
                     )}

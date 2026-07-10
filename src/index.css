@@ -1,9 +1,23 @@
+@font-face {
+  font-family: 'Naughty Monster';
+  src: url('./NaughtyMonster.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
   --font-display: "Outfit", system-ui, sans-serif;
+  --font-naughty: "Naughty Monster", sans-serif;
+}
+
+.highlight {
+    color: #fff;
+ 
 }
 
 /* Base resets & styling */
