@@ -323,188 +323,202 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
 
   return (
     <div className="min-h-screen pb-36 bg-[#0c0c0d] text-white selection:bg-yellow-400 selection:text-black">
-      {/* Upper Navigation Row (Matches Header Bar on Left Screen) */}
-      <header className="sticky top-0 z-30 bg-[#0c0c0d]/90 backdrop-blur-md border-b border-neutral-900 px-4 py-4.5">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            {/* Store Icon Badge */}
-            <div className="w-11 h-11 rounded-xl overflow-hidden bg-neutral-900 border border-neutral-800/80 flex items-center justify-center shrink-0 shadow-md">
-              <img 
-                src="https://i.ibb.co/2wtGGnh/logo2.png" 
-                alt="Logo" 
-                className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
-              />
-            </div>
-            <div className="cursor-default">
-              <h1 className="text-lg font-display font-black tracking-tight text-white leading-tight">
-                {settings.storeName}
-              </h1>
-              <div className="flex items-center mt-0.5">
-                {settings.isOpen ? (
-                  <span className="text-xs font-bold text-yellow-400 select-none">
-                    @LataoGelado
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-500/15 text-rose-400 border border-rose-500/20 select-none">
-                    Fechado
-                  </span>
-                )}
+      {/* Hero Section Container with Background Image and Gradient overlays */}
+      <div className="relative overflow-hidden mb-8">
+        {/* Background Image Layer */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none select-none opacity-45"
+          style={{ 
+            backgroundImage: "url('https://i.ibb.co/Q39XWqsR/Layer-41.png')",
+          }}
+        />
+        {/* Rich dark ambient overlay and bottom transition to background color */}
+        <div className="absolute inset-0 bg-neutral-950/75 pointer-events-none" />
+        <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#0c0c0d] to-transparent pointer-events-none" />
+
+        {/* Upper Navigation Row (Matches Header Bar on Left Screen) */}
+        <header className="relative z-30 bg-transparent px-4 py-4.5 border-b border-neutral-900/10">
+          <div className="max-w-4xl mx-auto flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              {/* Store Icon Badge */}
+              <div className="w-11 h-11 rounded-xl overflow-hidden bg-neutral-900 border border-neutral-800/80 flex items-center justify-center shrink-0 shadow-md">
+                <img 
+                  src="https://i.ibb.co/2wtGGnh/logo2.png" 
+                  alt="Logo" 
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
               </div>
-            </div>
-          </div>
-
-          {/* Simple plain text with "Naughty Monster" font, non-interactive (no link styling) */}
-          <div 
-            onDoubleClick={onNavigateToAdmin}
-            className="select-none py-1.5 pr-2 cursor-default"
-            title="Dê duplo clique para o painel"
-          >
-            <span 
-              className="text-yellow-400 tracking-wider text-xl sm:text-2xl"
-              style={{ fontFamily: '"Naughty Monster", sans-serif' }}
-            >
-              É só pedir!
-            </span>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Layout Container */}
-      <main className="max-w-4xl mx-auto px-4 mt-6">
-        
-        {/* Welcome Section (Mockup Header Profile Style) */}
-        <div className="flex justify-center items-center mb-6 text-center">
-          <div className="w-full">
-            <h2 className="text-4xl font-naughty text-yellow-400 tracking-wider">
-              Bem Vindo(a)!
-            </h2>
-            <p className="text-zinc-400 text-xs font-medium mt-2 max-w-lg mx-auto">
-              <strong className="highlight">Aviso importante: </strong>{" "} abrir este cardápio pode dar vontade de pedir tudo. 🍻 Confira nossas bebidas, espetinhos, doces e promoções.
-            </p>
-          </div> 
-        </div>
-
-        {/* Dynamic "Destaque do Dia" Banner (Chicken Baked Card style on Left Screen) */}
-        {activeFeatured && (
-          <div 
-            onClick={() => setSelectedProduct(activeFeatured)}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            className="mb-8 relative overflow-hidden bg-gradient-to-r from-yellow-400 via-amber-400 to-orange-500 border border-yellow-300/30 rounded-[32px] p-6 pb-12 flex items-center justify-between cursor-pointer hover:border-yellow-200/50 transition-[border-color,box-shadow] duration-300 hover:shadow-xl group select-none"
-          >
-            {/* Background elements */}
-            <div className="absolute top-0 right-0 w-48 h-48 bg-white/20 rounded-full blur-[60px] pointer-events-none group-hover:bg-white/30 transition-colors duration-300" />
-            
-            <div className="flex-1 pr-4 z-10">
-              <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 bg-neutral-950/15 text-neutral-950 text-[10px] font-black uppercase tracking-widest rounded-full mb-3.5">
-                <Sparkles className="w-3 h-3 text-neutral-950" />
-                <span>Destaques do Latão</span>
-              </div>
-              
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeFeatured.id}
-                  initial={{ opacity: 0, x: 15 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -15 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <h3 className="text-xl md:text-2xl font-display font-black text-neutral-950 leading-tight">
-                    {activeFeatured.name}
-                  </h3>
-                  <p className="text-neutral-900/85 text-xs font-semibold mt-1.5 line-clamp-2 max-w-md">
-                    {activeFeatured.description || 'Deliciosa opção em destaque no nosso cardápio! Peça agora mesmo.'}
-                  </p>
-                  
-                  <div className="flex items-center space-x-3 mt-4 text-xs font-semibold">
-                    <span className="text-yellow-400 font-black text-sm px-3 py-1 bg-neutral-950 rounded-xl border border-neutral-900 shadow-md">
-                      {formatBRL(activeFeatured.price)}
+              <div className="cursor-default">
+                <h1 className="text-lg font-display font-black tracking-tight text-white leading-tight">
+                  {settings.storeName}
+                </h1>
+                <div className="flex items-center mt-0.5">
+                  {settings.isOpen ? (
+                    <span className="text-xs font-bold text-yellow-400 select-none">
+                      @LataoGelado
                     </span>
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-            </div>
-
-            {/* Overlapping Floating Dish Preview */}
-            <div className="relative shrink-0 z-10 w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden border-4 border-neutral-950/30 shadow-2xl transition-transform duration-500 group-hover:scale-105 group-hover:rotate-6">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeFeatured.id}
-                  initial={{ opacity: 0, scale: 0.9, rotate: -15 }}
-                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, rotate: 15 }}
-                  transition={{ duration: 0.35 }}
-                  className="w-full h-full"
-                >
-                  {activeFeatured.image ? (
-                    <img 
-                      src={activeFeatured.image} 
-                      alt={activeFeatured.name}
-                      className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
-                    />
                   ) : (
-                    <div className="w-full h-full bg-neutral-800 flex items-center justify-center">
-                      <UtensilsCrossed className="w-8 h-8 text-neutral-600" />
-                    </div>
+                    <span className="inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-500/15 text-rose-400 border border-rose-500/20 select-none">
+                      Fechado
+                    </span>
                   )}
-                </motion.div>
-              </AnimatePresence>
+                </div>
+              </div>
             </div>
 
-            {/* Manual Sliding Left/Right Chevron Buttons */}
-            {featuredProducts.length > 1 && (
-              <>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setCurrentSlide((prev) => (prev - 1 + featuredProducts.length) % featuredProducts.length);
-                  }}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-2 bg-black/60 hover:bg-black/85 border border-neutral-800/80 text-white rounded-full transition-all cursor-pointer hover:scale-110 active:scale-95 flex items-center justify-center"
-                  title="Anterior"
-                >
-                  <ChevronLeft className="w-4 h-4 text-yellow-400" />
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setCurrentSlide((prev) => (prev + 1) % featuredProducts.length);
-                  }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-2 bg-black/60 hover:bg-black/85 border border-neutral-800/80 text-white rounded-full transition-all cursor-pointer hover:scale-110 active:scale-95 flex items-center justify-center"
-                  title="Próximo"
-                >
-                  <ChevronRight className="w-4 h-4 text-yellow-400" />
-                </button>
-              </>
-            )}
+            {/* Simple plain text with "Naughty Monster" font, non-interactive (no link styling) */}
+            <div 
+              onDoubleClick={onNavigateToAdmin}
+              className="select-none py-1.5 pr-2 cursor-default"
+              title="Dê duplo clique para o painel"
+            >
+              <span 
+                className="text-yellow-400 tracking-wider text-xl sm:text-2xl font-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
+                style={{ fontFamily: '"Naughty Monster", sans-serif' }}
+              >
+                É só pedir!
+              </span>
+            </div>
+          </div>
+        </header>
 
-            {/* Pagination Navigation Dots */}
-            {featuredProducts.length > 1 && (
-              <div className="absolute bottom-3.5 left-6 flex space-x-1.5 z-20">
-                {featuredProducts.map((_, idx) => (
+        {/* Hero Content Section: Welcome and Dynamic Banner */}
+        <div className="max-w-4xl mx-auto px-4 pt-8 pb-4 relative z-10">
+          {/* Welcome Section (Mockup Header Profile Style) */}
+          <div className="flex justify-center items-center mb-8 text-center">
+            <div className="w-full">
+              <h2 className="text-4xl md:text-5xl font-naughty text-yellow-400 tracking-wider uppercase drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">
+                Bem Vindo(a)!
+              </h2>
+              <p className="text-zinc-200 text-xs md:text-sm font-semibold mt-3 max-w-xl mx-auto leading-relaxed drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.9)]">
+                <strong className="text-yellow-400">Aviso importante:</strong> abrir este cardápio pode dar vontade de pedir tudo. 🍻 Confira nossas bebidas, espetinhos, doces e promoções.
+              </p>
+            </div> 
+          </div>
+
+          {/* Dynamic "Destaque do Dia" Banner (Chicken Baked Card style on Left Screen) */}
+          {activeFeatured && (
+            <div 
+              onClick={() => setSelectedProduct(activeFeatured)}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              className="relative overflow-hidden bg-gradient-to-br from-yellow-400 via-amber-400 to-amber-500 border-2 border-orange-500 rounded-[32px] p-6 pb-12 flex items-center justify-between cursor-pointer transition-all hover:shadow-[0_10px_30px_rgba(245,158,11,0.25)] group select-none shadow-2xl"
+            >
+              {/* Background flare element */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/20 rounded-full blur-[70px] pointer-events-none group-hover:bg-white/30 transition-colors duration-300" />
+              
+              <div className="flex-1 pr-4 z-10">
+                <div className="inline-flex items-center space-x-1.5 px-3 py-1 bg-neutral-950/10 text-neutral-950 text-[10px] font-black uppercase tracking-widest rounded-full mb-3.5">
+                  <Sparkles className="w-3.5 h-3.5 text-neutral-950" />
+                  <span>Destaques do Latão</span>
+                </div>
+                
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeFeatured.id}
+                    initial={{ opacity: 0, x: 15 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -15 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <h3 className="text-2xl md:text-3xl font-display font-black text-neutral-950 leading-tight tracking-tight">
+                      {activeFeatured.name}
+                    </h3>
+                    <p className="text-neutral-950/85 text-xs md:text-sm font-bold mt-2 line-clamp-3 max-w-md leading-relaxed">
+                      {activeFeatured.description || 'Deliciosa opção em destaque no nosso cardápio! Peça agora mesmo.'}
+                    </p>
+                    
+                    <div className="flex items-center space-x-3 mt-5">
+                      <span className="text-yellow-400 font-black text-sm md:text-base px-3.5 py-1.5 bg-neutral-950 rounded-2xl border border-neutral-900 shadow-lg">
+                        {formatBRL(activeFeatured.price)}
+                      </span>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              {/* Overlapping Floating Dish Preview - Rounded Rectangle Vertical aspect ratio */}
+              <div className="relative shrink-0 z-10 w-28 h-36 md:w-36 md:h-44 rounded-[24px] overflow-hidden border-2 border-orange-500/20 shadow-2xl transition-transform duration-500 group-hover:scale-105 group-hover:rotate-3">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeFeatured.id}
+                    initial={{ opacity: 0, scale: 0.95, rotate: -3 }}
+                    animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, rotate: 3 }}
+                    transition={{ duration: 0.35 }}
+                    className="w-full h-full"
+                  >
+                    {activeFeatured.image ? (
+                      <img 
+                        src={activeFeatured.image} 
+                        alt={activeFeatured.name}
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-neutral-800 flex items-center justify-center">
+                        <UtensilsCrossed className="w-8 h-8 text-neutral-600" />
+                      </div>
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              {/* Manual Sliding Left/Right Chevron Buttons */}
+              {featuredProducts.length > 1 && (
+                <>
                   <button
-                    key={idx}
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setCurrentSlide(idx);
+                      setCurrentSlide((prev) => (prev - 1 + featuredProducts.length) % featuredProducts.length);
                     }}
-                    className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                      idx === currentSlide ? 'bg-neutral-950 w-4' : 'bg-neutral-950/35 hover:bg-neutral-950/50'
-                    }`}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-neutral-950/25 hover:bg-neutral-950/50 border border-neutral-950/10 text-neutral-950 hover:text-white transition-all cursor-pointer flex items-center justify-center"
+                    title="Anterior"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCurrentSlide((prev) => (prev + 1) % featuredProducts.length);
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-neutral-950/25 hover:bg-neutral-950/50 border border-neutral-950/10 text-neutral-950 hover:text-white transition-all cursor-pointer flex items-center justify-center"
+                    title="Próximo"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </>
+              )}
 
-        {/* Simple WhatsApp Delivery Guidance Pill */}
-     
+              {/* Pagination Navigation Dots */}
+              {featuredProducts.length > 1 && (
+                <div className="absolute bottom-3.5 left-6 flex space-x-1.5 z-20">
+                  {featuredProducts.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCurrentSlide(idx);
+                      }}
+                      className={`w-2.5 h-1.5 rounded-full transition-all duration-300 ${
+                        idx === currentSlide ? 'bg-neutral-950 w-5' : 'bg-neutral-950/35 hover:bg-neutral-950/50'
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
 
+      {/* Main Layout Container */}
+      <main className="max-w-4xl mx-auto px-4 mt-2">
+        
         {/* Floating Success Alert */}
         <AnimatePresence>
           {orderSuccess && (
