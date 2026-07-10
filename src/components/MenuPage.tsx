@@ -814,7 +814,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                           {product.featured && (
                             <div className="flex items-center justify-center space-x-1 mt-2.5 text-[10px] text-yellow-400/95 font-bold bg-yellow-400/5 py-1 px-2.5 rounded-full border border-yellow-400/10 max-w-max mx-auto">
                               <Crown className="w-3 h-3 fill-yellow-400" />
-                              <span>Destaque</span>
+                              <span>Destaques do Latão</span>
                             </div>
                           )}
                         </div>
