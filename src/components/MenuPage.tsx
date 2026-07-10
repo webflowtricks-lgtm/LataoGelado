@@ -537,7 +537,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                     : 'bg-[#17171a] text-zinc-400 border-neutral-900 hover:border-neutral-800 hover:text-white'
                 }`}
               >
-                🔥 Todos
+                Todos
               </button>
               
               {categoriesWithProducts.map((cat) => {
