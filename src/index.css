@@ -19,6 +19,10 @@
     color: #fff;
  
 }
+
+.menu-category-title {
+ 
+}
  
  .destaque-brush-sticker {
     width: calc(var(--spacing) * 49);

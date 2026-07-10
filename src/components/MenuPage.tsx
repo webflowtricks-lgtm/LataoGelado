@@ -743,7 +743,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                     <div className="p-1.5 rounded-full bg-neutral-950 border border-neutral-800 text-[#ff6b00] flex items-center justify-center shadow-md">
                       <CategoryIcon className="w-4 h-4" />
                     </div>
-                    <h2 className="text-base sm:text-lg font-display font-black text-neutral-950 tracking-tight">
+                    <h2 className="text-base sm:text-lg font-naughty font-black text-neutral-950 tracking-tight menu-category-title">
                       {cat.label}
                     </h2>
                     <span className="text-zinc-300 text-[10px] font-black bg-neutral-950/90 px-2.5 py-0.5 rounded-full border border-neutral-800/10 shadow-sm">
