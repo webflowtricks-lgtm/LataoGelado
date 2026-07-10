@@ -330,11 +330,10 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                     ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' 
                     : 'bg-rose-500/15 text-rose-400 border border-rose-500/20'
                 }`}>
-                  <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${settings.isOpen ? 'bg-emerald-400' : 'bg-rose-400'}`} />
-                  {settings.isOpen ? 'É só pedir!' : 'Fechado'}
+                  <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${settings.isOpen ? ' ' : 'bg-rose-400'}`} />
+                  {settings.isOpen ? '@LataoGelado' : 'Fechado'}
                 </span>
-                <span className="text-neutral-700 text-xs">•</span>
-                <span className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider">Cardápio</span>
+ 
               </div>
             </div>
           </div>
