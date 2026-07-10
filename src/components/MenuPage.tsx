@@ -354,7 +354,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
               Bem Vindo(a)!
             </h2>
             <p className="text-zinc-400 text-xs font-medium mt-2 max-w-lg mx-auto">
-              <strong className="highlight">Aviso importante: </strong>{" "} abrir este cardápio pode dar vontade de pedir tudo. 🍻 Confira nossas bebidas, espetinhos e doces e promoções
+              <strong className="highlight">Aviso importante: </strong>{" "} abrir este cardápio pode dar vontade de pedir tudo. 🍻 Confira nossas bebidas, espetinhos, doces e promoções.
             </p>
           </div> 
         </div>
@@ -477,12 +477,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
         )}
 
         {/* Simple WhatsApp Delivery Guidance Pill */}
-        <div className="bg-[#17171a] rounded-2xl border border-neutral-900 p-4 shadow-sm mb-8 flex items-center space-x-3">
-          <div className="p-2.5 bg-neutral-900 rounded-xl text-yellow-400 shrink-0">
-            <MessageSquare className="w-5 h-5" />
-          </div>
-          
-        </div>
+     
 
         {/* Floating Success Alert */}
         <AnimatePresence>
