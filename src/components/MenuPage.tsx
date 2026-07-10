@@ -404,7 +404,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
               <img 
                 src="https://i.ibb.co/rRnCkxb5/destauqe.png" 
                 alt="Destaques do Latão" 
-                className="absolute left-1/2 -translate-x-1/2 top-1.5 z-20 w-44 sm:w-52 md:w-56 object-contain pointer-events-none drop-shadow-[0_4px_6px_rgba(0,0,0,0.35)]"
+                className="absolute left-1/2 -translate-x-1/2 top-1.5 z-20 w-44 sm:w-52 md:w-56 object-contain pointer-events-none drop-shadow-[0_4px_6px_rgba(0,0,0,0.35)] destaque-brush-sticker"
                 referrerPolicy="no-referrer"
               />
               

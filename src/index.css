@@ -20,7 +20,11 @@
  
 }
  
- 
+ .destaque-brush-sticker {
+    width: calc(var(--spacing) * 49);
+    transform: rotate(356deg);
+    top: -5px;
+ }
 
 .font-naughty {
   font-family: "Naughty Monster", sans-serif;
