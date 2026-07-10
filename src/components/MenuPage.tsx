@@ -327,7 +327,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
       <div className="relative overflow-hidden mb-8">
         {/* Background Image Layer */}
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none select-none opacity-45"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none select-none opacity-65"
           style={{ 
             backgroundImage: "url('https://i.ibb.co/Q39XWqsR/Layer-41.png')",
           }}
@@ -410,10 +410,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/20 rounded-full blur-[70px] pointer-events-none group-hover:bg-white/30 transition-colors duration-300" />
               
               <div className="flex-1 pr-4 z-10">
-                <div className="inline-flex items-center space-x-1.5 px-3 py-1 bg-neutral-950/10 text-neutral-950 text-[10px] font-black uppercase tracking-widest rounded-full mb-3.5">
-                  <Sparkles className="w-3.5 h-3.5 text-neutral-950" />
-                  <span>Destaques do Latão</span>
-                </div>
+              
                 
                 <AnimatePresence mode="wait">
                   <motion.div
