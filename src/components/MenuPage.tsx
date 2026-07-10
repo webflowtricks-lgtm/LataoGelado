@@ -759,7 +759,6 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                     return (
                       <motion.div 
                         key={product.id}
-                        layoutId={`product-${product.id}`}
                         onClick={() => setSelectedProduct(product)}
                         className={`bg-[#17171a] hover:bg-[#1d1d22] rounded-[32px] border p-4 pt-16 flex flex-col justify-between transition-all hover:-translate-y-1 cursor-pointer relative ${
                           !product.available ? 'opacity-60' : ''
@@ -1234,6 +1233,11 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
           </>
         )}
       </AnimatePresence>
+      {/* Hidden preloader for custom paper backgrounds */}
+      <div className="hidden">
+        <img src="https://i.ibb.co/PzYdh8j3/paper.png" alt="" />
+        <img src="https://i.ibb.co/RGzp295F/aaa.png" alt="" />
+      </div>
     </div>
   );
 }
