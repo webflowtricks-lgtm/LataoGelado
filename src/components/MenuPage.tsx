@@ -785,7 +785,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                   <img 
                     src="https://i.ibb.co/2wtGGnh/logo2.png" 
                     alt="" 
-                    className="absolute bottom-[-20px] right-[-20px] w-48 h-48 object-contain logo-inferior-card"
+                    className="absolute bottom-[-30px] right-[-30px] w-64 h-64 sm:w-80 sm:h-80 sm:bottom-[-40px] sm:right-[-40px] object-contain logo-inferior-card"
                     style={{ filter: 'brightness(0) invert(1)', opacity: 0.06 }}
                     referrerPolicy="no-referrer"
                   />

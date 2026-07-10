@@ -990,7 +990,7 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
                 {/* Form to Create/Edit */}
                 <form onSubmit={handleCategorySave} className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-4">
                   <h4 className="font-display font-bold text-xs text-slate-800 uppercase tracking-wide">
-                    {editingCategory ? '✏️ Editar Categoria' : '✨ Nova Categoria'}
+                    {editingCategory ? '✏️ Editar Categoria' : 'Nova Categoria'}
                   </h4>
                   
                   <div>
