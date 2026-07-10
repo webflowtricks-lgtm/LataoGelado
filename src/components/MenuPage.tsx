@@ -392,7 +392,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                 Bem Vindo(a)!
               </h2>
               <p className="text-zinc-200 text-xs md:text-sm font-semibold mt-3 max-w-xl mx-auto leading-relaxed drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.9)]">
-                <strong className="text-yellow-400">Aviso importante:</strong> abrir este cardápio pode dar vontade de pedir tudo. 🍻 Confira nossas bebidas, espetinhos, doces e promoções.
+                <strong className="text-yellow-400">Aviso importante:</strong> abrir este cardápio pode dar vontade de pedir tudo. Confira nossas bebidas, espetinhos, doces e promoções.
               </p>
             </div> 
           </div>
