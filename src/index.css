@@ -20,6 +20,10 @@
  
 }
 
+.font-naughty {
+  font-size:  65px;
+}
+
 /* Base resets & styling */
 body {
   font-family: var(--font-sans);
