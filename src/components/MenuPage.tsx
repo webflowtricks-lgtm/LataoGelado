@@ -891,7 +891,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                 <button
                   type="button"
                   onClick={() => setSelectedProduct(null)}
-                  className="mt-6 w-full py-3 border border-neutral-800 text-zinc-400 hover:text-white rounded-2xl text-xs font-bold transition-colors cursor-pointer bg-neutral-950/40 hover:bg-neutral-900/60"
+                  className="mt-2 w-full py-3 border border-neutral-800 text-zinc-400 hover:text-white rounded-2xl text-xs font-bold transition-colors cursor-pointer bg-neutral-950/40 hover:bg-neutral-900/60"
                 >
                   Voltar ao Cardápio
                 </button>
