@@ -1091,35 +1091,41 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 26, stiffness: 220 }}
-              className="fixed bottom-0 left-0 right-0 max-w-2xl mx-auto bg-[#17171a] border-t border-neutral-850 rounded-t-[40px] shadow-2xl z-50 max-h-[90vh] flex flex-col overflow-hidden text-white"
+              className="fixed bottom-0 left-0 right-0 max-w-2xl mx-auto border-t border-transparent shadow-2xl z-50 max-h-[90vh] flex flex-col overflow-hidden text-white"
+              style={{
+                backgroundImage: "url('https://i.ibb.co/RGzp295F/aaa.png')",
+                backgroundSize: '100% 100%',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center'
+              }}
             >
               {/* Drawer Header */}
-              <div className="p-5 border-b border-neutral-900 flex items-center justify-between bg-[#131315] shrink-0">
-                <div className="flex items-center space-x-2">
-                  <div className="p-2 bg-yellow-400 text-black rounded-xl">
+              <div className="pt-8 pb-4 pr-5 border-b border-stone-200/30 flex items-center justify-between bg-transparent shrink-0 pl-14 sm:pl-16 md:pl-20">
+                <div className="flex items-center space-x-2.5">
+                  <div className="p-2.5 bg-yellow-400 text-black rounded-2xl shadow-sm">
                     <ShoppingBag className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-display font-black text-white text-base">Sua Sacola</h3>
-                    <p className="text-xs text-zinc-400 font-semibold">Você tem {cartTotalQuantity} {cartTotalQuantity === 1 ? 'item selecionado' : 'itens selecionados'}</p>
+                    <h3 className="font-display font-black text-neutral-900 text-base md:text-lg">Sua Sacola</h3>
+                    <p className="text-[11px] text-stone-500 font-bold">Você tem {cartTotalQuantity} {cartTotalQuantity === 1 ? 'item selecionado' : 'itens selecionados'}</p>
                   </div>
                 </div>
                 <button 
                   onClick={() => setIsCartOpen(false)}
-                  className="p-2.5 text-zinc-400 hover:text-white hover:bg-neutral-800 rounded-full transition-colors cursor-pointer"
+                  className="p-2.5 text-stone-600 hover:text-black hover:bg-black/5 rounded-full transition-colors cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               {/* Drawer Body (Scrollable) */}
-              <div className="flex-1 overflow-y-auto p-5 space-y-6">
+              <div className="flex-1 overflow-y-auto pt-4 pb-6 pr-5 space-y-6 pl-14 sm:pl-16 md:pl-20">
                 {/* Cart Items List */}
                 <div className="space-y-3">
                   {cart.map((item) => (
                     <div 
                       key={item.product.id}
-                      className="flex items-center justify-between p-4 bg-[#1e1e22] rounded-2xl border border-neutral-900"
+                      className="flex items-center justify-between p-4 bg-[#1e1e22] rounded-2xl border border-neutral-900/40 shadow-sm"
                     >
                       <div className="min-w-0 pr-4">
                         <h4 className="font-black text-sm text-white truncate">{item.product.name}</h4>
@@ -1149,7 +1155,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                         <button
                           type="button"
                           onClick={() => setCart(prev => prev.filter(i => i.product.id !== item.product.id))}
-                          className="p-1.5 text-[#facc15] hover:text-yellow-400 rounded-lg hover:bg-neutral-850 transition-colors cursor-pointer shrink-0"
+                          className="p-1.5 text-[#facc15] hover:text-yellow-400 rounded-lg hover:bg-neutral-850/50 transition-colors cursor-pointer shrink-0"
                           title="Remover item"
                         >
                           <X className="w-4 h-4" />
@@ -1162,7 +1168,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                 {/* Checkout Fields Form */}
                 <form id="checkout-form" onSubmit={handleCheckout} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
+                    <label className="block text-xs font-black text-stone-700 uppercase tracking-wider mb-1.5">
                       Seu Nome
                     </label>
                     <input 
@@ -1170,12 +1176,12 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                       placeholder="Ex: Roberto Souza"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
-                      className="w-full bg-[#1e1e22] border border-neutral-850 focus:border-yellow-400 rounded-xl py-3 px-4 text-xs font-semibold outline-hidden transition-colors text-white placeholder-zinc-500"
+                      className="w-full bg-[#1e1e22] border border-neutral-900/30 focus:border-yellow-400 rounded-2xl py-3.5 px-5 text-xs font-semibold outline-hidden transition-colors text-white placeholder-zinc-500 shadow-sm"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
+                    <label className="block text-xs font-black text-stone-700 uppercase tracking-wider mb-1.5">
                       Observações ou Detalhes
                     </label>
                     <textarea 
@@ -1183,13 +1189,13 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                       placeholder="Ex: Sem cebola, gelo e limão na dose, etc."
                       value={observations}
                       onChange={(e) => setObservations(e.target.value)}
-                      className="w-full bg-[#1e1e22] border border-neutral-850 focus:border-yellow-400 rounded-xl py-3 px-4 text-xs font-semibold outline-hidden transition-colors text-white resize-none placeholder-zinc-500"
+                      className="w-full bg-[#1e1e22] border border-neutral-900/30 focus:border-yellow-400 rounded-2xl py-3.5 px-5 text-xs font-semibold outline-hidden transition-colors text-white resize-none placeholder-zinc-500 shadow-sm"
                     />
                   </div>
                 </form>
 
                 {/* Total Calculations summary */}
-                <div className="bg-[#1e1e22] rounded-2xl border border-neutral-900 p-5 space-y-3">
+                <div className="bg-[#1e1e22] rounded-2xl border border-neutral-950 p-5 space-y-3 shadow-sm">
                   <div className="flex justify-between items-center">
                     <span className="font-bold text-sm text-zinc-200">Total dos Itens</span>
                     <span className="font-display font-black text-lg text-yellow-400">{formatBRL(cartSubtotal)}</span>
@@ -1201,7 +1207,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
               </div>
 
               {/* Drawer Footer (Buttons) */}
-              <div className="p-5 border-t border-neutral-900 bg-[#131315] shrink-0">
+              <div className="pt-4 pb-6 pr-5 border-t border-stone-200/30 bg-transparent shrink-0 pl-14 sm:pl-16 md:pl-20">
                 <button
                   type="submit"
                   form="checkout-form"
@@ -1209,10 +1215,10 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                   className={`w-full py-4 text-black font-black rounded-2xl flex items-center justify-center space-x-2 shadow-lg transition-all ${
                     settings.isOpen 
                       ? 'bg-[#facc15] hover:bg-yellow-400 hover:-translate-y-0.5 cursor-pointer shadow-yellow-500/5' 
-                      : 'bg-neutral-800 text-zinc-500 cursor-not-allowed'
+                      : 'bg-neutral-850 text-zinc-500 cursor-not-allowed'
                   }`}
                 >
-                  <MessageSquare className="w-5 h-5" />
+                  <MessageSquare className="w-5 h-5 text-black" />
                   <span>
                     {settings.isOpen 
                       ? 'Enviar Pedido para o WhatsApp' 
