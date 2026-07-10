@@ -65,11 +65,7 @@ export const ICON_MAP: Record<string, any> = {
   Apple,
   Grid,
   Martini,
-  CupSoda,
-  Crown,
-  Sparkles,
-  Whisky: GlassWater,
-  Uisque: GlassWater
+  CupSoda
 };
 
 const PRESET_STYLES = [
@@ -164,10 +160,18 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
 
   // New states for the immersive mockup-like product detailed view
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [tempQuantity, setTempQuantity] = useState<number>(1);
 
   // Manual sliding swiping state
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (selectedProduct) {
+      const currentQty = getProductQuantity(selectedProduct.id);
+      setTempQuantity(currentQty > 0 ? currentQty : 1);
+    }
+  }, [selectedProduct]);
 
   // Automatic rotating banner state
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -352,7 +356,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                 />
               </div>
               <div className="cursor-default">
-                <h1 className="text-lg font-naughty font-black tracking-tight text-white leading-tight store-name-title">
+                <h1 className="text-lg font-display font-black tracking-tight text-white leading-tight">
                   {settings.storeName}
                 </h1>
                 <div className="flex items-center mt-0.5">
@@ -736,8 +740,8 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                   
                   {/* Content over the paper */}
                   <div className="relative z-10 flex items-center space-x-2.5">
-                    <div className="p-1.5 rounded-full bg-black border border-neutral-900 flex items-center justify-center shadow-md">
-                      <CategoryIcon className="w-4 h-4 text-yellow-400" />
+                    <div className="p-1.5 rounded-full bg-neutral-950 border border-neutral-800 text-yellow-400 flex items-center justify-center shadow-md">
+                      <CategoryIcon className="w-4 h-4" />
                     </div>
                     <h2 className="text-base sm:text-lg font-naughty font-black text-neutral-950 tracking-tight menu-category-title">
                       {cat.label}
@@ -755,6 +759,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                     return (
                       <motion.div 
                         key={product.id}
+                        layoutId={`product-${product.id}`}
                         onClick={() => setSelectedProduct(product)}
                         className={`bg-[#17171a] hover:bg-[#1d1d22] rounded-[32px] border p-4 pt-16 flex flex-col justify-between transition-all hover:-translate-y-1 cursor-pointer relative ${
                           !product.available ? 'opacity-60' : ''
@@ -865,23 +870,177 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
         </div>
       </main>
 
-        {/* Spectacular Product Detailed Modal / Overlay (Matches Right Smartphone Screen) */}
+       {/* Spectacular Product Detailed Modal / Overlay (Matches Right Smartphone Screen) */}
       <AnimatePresence>
-        {selectedProduct && (
-          <ProductDetailModal
-            product={selectedProduct}
-            onClose={() => setSelectedProduct(null)}
-            categoryMap={categoryMap}
-            getProductQuantity={getProductQuantity}
-            setCart={setCart}
-            formatBRL={formatBRL}
-          />
-        )}
+        {selectedProduct && (() => {
+          const quantity = getProductQuantity(selectedProduct.id);
+          const categoryDetail = categoryMap[selectedProduct.category] || { label: 'Especial', bg: 'bg-neutral-900 text-white' };
+
+          return (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-[#0c0c0d] overflow-y-auto no-scrollbar"
+            >
+              {/* Top Banner Image Section - Full Screen Width, Aspect Square */}
+              <div className="relative w-full aspect-square md:max-h-[450px] shrink-0 overflow-hidden bg-neutral-900">
+                {selectedProduct.image ? (
+                  <img 
+                    src={selectedProduct.image} 
+                    alt={selectedProduct.name}
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <UtensilsCrossed className="w-16 h-16 text-neutral-700" />
+                  </div>
+                )}
+
+                {/* Absolute Close/Back button in Top-Left */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedProduct(null)}
+                  className="absolute top-4 left-4 z-20 p-2.5 bg-black/60 backdrop-blur-md rounded-xl border border-white/10 text-white hover:bg-black/85 transition-all cursor-pointer hover:scale-105 active:scale-95 flex items-center justify-center"
+                >
+                  <ChevronLeft className="w-5 h-5 text-white" />
+                </button>
+
+                {/* Absolute Crown Badge in Top-Right (If Featured) */}
+                {selectedProduct.featured && (
+                  <div className="absolute top-4 right-4 z-20 p-2.5 bg-black/60 backdrop-blur-md rounded-xl border border-white/10 text-yellow-400 flex items-center justify-center">
+                    <Crown className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                  </div>
+                )}
+              </div>
+
+              {/* Naturally Flowing Details Content Card - Overlaps the bottom of the image slightly with a beautiful rounded sheet */}
+              <div className="w-full max-w-2xl mx-auto bg-[#121214] rounded-t-[32px] p-6 sm:p-8 pb-12 mt-[-32px] relative z-10 shadow-[0_-15px_30px_rgba(0,0,0,0.8)] border-t border-neutral-850">
+                {/* Custom White Outline Watermark Logo behind content at 6% opacity */}
+                <div className="absolute inset-0 rounded-t-[32px] overflow-hidden pointer-events-none z-0">
+                  <img 
+                    src="https://i.ibb.co/2wtGGnh/logo2.png" 
+                    alt="" 
+                    className="absolute bottom-[-30px] right-[-30px] w-64 h-64 sm:w-80 sm:h-80 sm:bottom-[-40px] sm:right-[-40px] object-contain logo-inferior-card"
+                    style={{ filter: 'brightness(0) invert(1)', opacity: 0.06 }}
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+
+                {/* Horizontal handle indicator */}
+                <div className="w-12 h-1 bg-neutral-800 rounded-full mx-auto mb-6 shrink-0 relative z-10" />
+
+                <div className="flex-1 relative z-10">
+                  {/* Category Pill Tag & Product Code */}
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-yellow-400/10 text-yellow-400 border border-yellow-400/20">
+                      {categoryDetail.label}
+                    </span>
+                    <span className="text-xs text-zinc-500 font-bold">Cod: #{selectedProduct.id.substring(0, 5)}</span>
+                  </div>
+
+                  {/* Product Title */}
+                  <h3 className="text-2xl sm:text-3xl font-display font-black text-white leading-tight tracking-tight">
+                    {selectedProduct.name}
+                  </h3>
+
+                  {/* Attributes line */}
+                  {selectedProduct.featured && (
+                    <div className="flex items-center mt-3.5 text-xs font-bold text-zinc-400">
+                      <span className="flex items-center space-x-1 text-yellow-400">
+                        <Crown className="w-3.5 h-3.5 fill-yellow-400" />
+                        <span>Destaques do Latão</span>
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Description text */}
+                  <p className="text-zinc-300 text-xs sm:text-sm leading-relaxed mt-5 font-semibold">
+                    {selectedProduct.description || 'Uma receita autêntica e fresca preparada com ingredientes selecionados pelo chef. Perfeito para lanchar a qualquer hora do dia ou da noite.'}
+                  </p>
+                </div>
+
+                {/* Bottom Action Bar */}
+                <div className="mt-8 pt-6 border-t border-neutral-900/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0 relative z-10">
+                  <div>
+                    <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Preço Unitário</p>
+                    <p className="text-xl sm:text-2xl font-black text-white mt-1">
+                      {formatBRL(selectedProduct.price)}
+                    </p>
+                  </div>
+
+                  {selectedProduct.available ? (
+                    <div className="flex flex-col items-stretch sm:items-end space-y-3 w-full sm:w-auto">
+                      {/* Stepper with Minus / Qty / Plus */}
+                      <div className="flex items-center justify-between sm:justify-end space-x-3">
+                        <span className="text-xs font-bold text-zinc-400">Quantidade:</span>
+                        <div className="bg-neutral-900 border border-neutral-850 rounded-2xl p-1 flex items-center space-x-3">
+                          <button
+                            type="button"
+                            onClick={() => setTempQuantity(prev => Math.max(1, prev - 1))}
+                            className="p-2 text-zinc-400 hover:text-white hover:bg-neutral-850 rounded-xl transition-all cursor-pointer active:scale-95 flex items-center justify-center"
+                          >
+                            <Minus className="w-4 h-4" />
+                          </button>
+                          <span className="text-sm font-black text-white min-w-[20px] text-center">{tempQuantity}</span>
+                          <button
+                            type="button"
+                            onClick={() => setTempQuantity(prev => prev + 1)}
+                            className="p-2 text-zinc-400 hover:text-white hover:bg-neutral-850 rounded-xl transition-all cursor-pointer active:scale-95 flex items-center justify-center"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Prominent Golden Add to Cart Button right below quantity */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCart((prevCart) => {
+                            const existing = prevCart.find((item) => item.product.id === selectedProduct.id);
+                            if (existing) {
+                              return prevCart.map((item) =>
+                                item.product.id === selectedProduct.id ? { ...item, quantity: tempQuantity } : item
+                              );
+                            } else {
+                              return [...prevCart, { product: selectedProduct, quantity: tempQuantity }];
+                            }
+                          });
+                          setSelectedProduct(null);
+                        }}
+                        className="w-full sm:w-auto px-6 py-3 bg-[#facc15] hover:bg-yellow-400 active:scale-95 text-black font-black text-xs sm:text-sm rounded-2xl shadow-lg shadow-yellow-500/10 transition-all flex items-center justify-center space-x-2 cursor-pointer"
+                      >
+                        <ShoppingBag className="w-4 h-4" />
+                        <span>Adicionar ao carrinho ({formatBRL(selectedProduct.price * tempQuantity)})</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <span className="px-3.5 py-2 bg-neutral-900 text-zinc-500 rounded-xl font-bold text-xs uppercase tracking-wider border border-neutral-850">
+                      Indisponível no momento
+                    </span>
+                  )}
+                </div>
+
+                {/* Back button option to close */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedProduct(null)}
+                  className="mt-2 w-full py-3 border border-neutral-800 text-zinc-400 hover:text-white rounded-2xl text-xs font-bold transition-colors cursor-pointer bg-neutral-950/40 hover:bg-neutral-900/60"
+                >
+                  Voltar ao Cardápio
+                </button>
+              </div>
+            </motion.div>
+          );
+        })()}
       </AnimatePresence>
 
       {/* Floating Bottom Cart Bar */}
       <AnimatePresence>
-        {cartTotalQuantity > 0 && !isCartOpen && !selectedProduct && (
+        {cartTotalQuantity > 0 && !isCartOpen && (
           <motion.div 
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
@@ -932,41 +1091,35 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 26, stiffness: 220 }}
-              className="fixed bottom-0 left-0 right-0 max-w-2xl mx-auto border-t border-transparent shadow-2xl z-50 max-h-[90vh] flex flex-col overflow-hidden text-white"
-              style={{
-                backgroundImage: "url('https://i.ibb.co/RGzp295F/aaa.png')",
-                backgroundSize: '100% 100%',
-                backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'center'
-              }}
+              className="fixed bottom-0 left-0 right-0 max-w-2xl mx-auto bg-[#17171a] border-t border-neutral-850 rounded-t-[40px] shadow-2xl z-50 max-h-[90vh] flex flex-col overflow-hidden text-white"
             >
               {/* Drawer Header */}
-              <div className="pt-8 pb-4 pr-5 border-b border-stone-200/30 flex items-center justify-between bg-transparent shrink-0 pl-14 sm:pl-16 md:pl-20">
-                <div className="flex items-center space-x-2.5">
-                  <div className="p-2.5 bg-yellow-400 text-black rounded-2xl shadow-sm">
+              <div className="p-5 border-b border-neutral-900 flex items-center justify-between bg-[#131315] shrink-0">
+                <div className="flex items-center space-x-2">
+                  <div className="p-2 bg-yellow-400 text-black rounded-xl">
                     <ShoppingBag className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-display font-black text-neutral-900 text-base md:text-lg">Sua Sacola</h3>
-                    <p className="text-[11px] text-stone-500 font-bold">Você tem {cartTotalQuantity} {cartTotalQuantity === 1 ? 'item selecionado' : 'itens selecionados'}</p>
+                    <h3 className="font-display font-black text-white text-base">Sua Sacola</h3>
+                    <p className="text-xs text-zinc-400 font-semibold">Você tem {cartTotalQuantity} {cartTotalQuantity === 1 ? 'item selecionado' : 'itens selecionados'}</p>
                   </div>
                 </div>
                 <button 
                   onClick={() => setIsCartOpen(false)}
-                  className="p-2.5 text-stone-600 hover:text-black hover:bg-black/5 rounded-full transition-colors cursor-pointer"
+                  className="p-2.5 text-zinc-400 hover:text-white hover:bg-neutral-800 rounded-full transition-colors cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               {/* Drawer Body (Scrollable) */}
-              <div className="flex-1 overflow-y-auto pt-4 pb-6 pr-5 space-y-6 pl-14 sm:pl-16 md:pl-20">
+              <div className="flex-1 overflow-y-auto p-5 space-y-6">
                 {/* Cart Items List */}
                 <div className="space-y-3">
                   {cart.map((item) => (
                     <div 
                       key={item.product.id}
-                      className="flex items-center justify-between p-4 bg-[#1e1e22] rounded-2xl border border-neutral-900/40 shadow-sm"
+                      className="flex items-center justify-between p-4 bg-[#1e1e22] rounded-2xl border border-neutral-900"
                     >
                       <div className="min-w-0 pr-4">
                         <h4 className="font-black text-sm text-white truncate">{item.product.name}</h4>
@@ -996,7 +1149,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                         <button
                           type="button"
                           onClick={() => setCart(prev => prev.filter(i => i.product.id !== item.product.id))}
-                          className="p-1.5 text-[#facc15] hover:text-yellow-400 rounded-lg hover:bg-neutral-850/50 transition-colors cursor-pointer shrink-0"
+                          className="p-1.5 text-[#facc15] hover:text-yellow-400 rounded-lg hover:bg-neutral-850 transition-colors cursor-pointer shrink-0"
                           title="Remover item"
                         >
                           <X className="w-4 h-4" />
@@ -1009,7 +1162,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                 {/* Checkout Fields Form */}
                 <form id="checkout-form" onSubmit={handleCheckout} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-black text-stone-700 uppercase tracking-wider mb-1.5">
+                    <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
                       Seu Nome
                     </label>
                     <input 
@@ -1017,12 +1170,12 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                       placeholder="Ex: Roberto Souza"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
-                      className="w-full bg-[#1e1e22] border border-neutral-900/30 focus:border-yellow-400 rounded-2xl py-3.5 px-5 text-xs font-semibold outline-hidden transition-colors text-white placeholder-zinc-500 shadow-sm"
+                      className="w-full bg-[#1e1e22] border border-neutral-850 focus:border-yellow-400 rounded-xl py-3 px-4 text-xs font-semibold outline-hidden transition-colors text-white placeholder-zinc-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-black text-stone-700 uppercase tracking-wider mb-1.5">
+                    <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
                       Observações ou Detalhes
                     </label>
                     <textarea 
@@ -1030,13 +1183,13 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                       placeholder="Ex: Sem cebola, gelo e limão na dose, etc."
                       value={observations}
                       onChange={(e) => setObservations(e.target.value)}
-                      className="w-full bg-[#1e1e22] border border-neutral-900/30 focus:border-yellow-400 rounded-2xl py-3.5 px-5 text-xs font-semibold outline-hidden transition-colors text-white resize-none placeholder-zinc-500 shadow-sm"
+                      className="w-full bg-[#1e1e22] border border-neutral-850 focus:border-yellow-400 rounded-xl py-3 px-4 text-xs font-semibold outline-hidden transition-colors text-white resize-none placeholder-zinc-500"
                     />
                   </div>
                 </form>
 
                 {/* Total Calculations summary */}
-                <div className="bg-[#1e1e22] rounded-2xl border border-neutral-950 p-5 space-y-3 shadow-sm">
+                <div className="bg-[#1e1e22] rounded-2xl border border-neutral-900 p-5 space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="font-bold text-sm text-zinc-200">Total dos Itens</span>
                     <span className="font-display font-black text-lg text-yellow-400">{formatBRL(cartSubtotal)}</span>
@@ -1048,7 +1201,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
               </div>
 
               {/* Drawer Footer (Buttons) */}
-              <div className="pt-4 pb-6 pr-5 border-t border-stone-200/30 bg-transparent shrink-0 pl-14 sm:pl-16 md:pl-20">
+              <div className="p-5 border-t border-neutral-900 bg-[#131315] shrink-0">
                 <button
                   type="submit"
                   form="checkout-form"
@@ -1056,10 +1209,10 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                   className={`w-full py-4 text-black font-black rounded-2xl flex items-center justify-center space-x-2 shadow-lg transition-all ${
                     settings.isOpen 
                       ? 'bg-[#facc15] hover:bg-yellow-400 hover:-translate-y-0.5 cursor-pointer shadow-yellow-500/5' 
-                      : 'bg-neutral-850 text-zinc-500 cursor-not-allowed'
+                      : 'bg-neutral-800 text-zinc-500 cursor-not-allowed'
                   }`}
                 >
-                  <MessageSquare className="w-5 h-5 text-black" />
+                  <MessageSquare className="w-5 h-5" />
                   <span>
                     {settings.isOpen 
                       ? 'Enviar Pedido para o WhatsApp' 
@@ -1075,193 +1228,6 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
           </>
         )}
       </AnimatePresence>
-      {/* Hidden preloader for custom paper backgrounds */}
-      <div className="hidden">
-        <img src="https://i.ibb.co/PzYdh8j3/paper.png" alt="" />
-        <img src="https://i.ibb.co/RGzp295F/aaa.png" alt="" />
-      </div>
     </div>
-  );
-}
-
-interface ProductDetailModalProps {
-  product: Product;
-  onClose: () => void;
-  categoryMap: Record<string, any>;
-  getProductQuantity: (id: string) => number;
-  setCart: React.Dispatch<React.SetStateAction<CartItem[]>>;
-  formatBRL: (val: number) => string;
-}
-
-function ProductDetailModal({
-  product,
-  onClose,
-  categoryMap,
-  getProductQuantity,
-  setCart,
-  formatBRL
-}: ProductDetailModalProps) {
-  const currentQty = getProductQuantity(product.id);
-  const [qty, setQty] = useState<number>(currentQty > 0 ? currentQty : 1);
-  const categoryDetail = categoryMap[product.category] || { label: 'Especial', bg: 'bg-neutral-900 text-white' };
-
-  return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 bg-[#0c0c0d] overflow-y-auto no-scrollbar"
-    >
-      {/* Top Banner Image Section - Full Screen Width, Aspect Square */}
-      <div className="relative w-full aspect-square md:max-h-[450px] shrink-0 overflow-hidden bg-neutral-900">
-        {product.image ? (
-          <img 
-            src={product.image} 
-            alt={product.name}
-            className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <UtensilsCrossed className="w-16 h-16 text-neutral-700" />
-          </div>
-        )}
-
-        {/* Absolute Close/Back button in Top-Left */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute top-4 left-4 z-20 p-2.5 bg-black/60 backdrop-blur-md rounded-xl border border-white/10 text-white hover:bg-black/85 transition-all cursor-pointer hover:scale-105 active:scale-95 flex items-center justify-center"
-        >
-          <ChevronLeft className="w-5 h-5 text-white" />
-        </button>
-
-        {/* Absolute Crown Badge in Top-Right (If Featured) */}
-        {product.featured && (
-          <div className="absolute top-4 right-4 z-20 p-2.5 bg-black/60 backdrop-blur-md rounded-xl border border-white/10 text-yellow-400 flex items-center justify-center">
-            <Crown className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-          </div>
-        )}
-      </div>
-
-      {/* Naturally Flowing Details Content Card - Overlaps the bottom of the image slightly with a beautiful rounded sheet */}
-      <div className="w-full max-w-2xl mx-auto bg-[#121214] rounded-t-[32px] p-6 sm:p-8 pb-12 mt-[-32px] relative z-10 shadow-[0_-15px_30px_rgba(0,0,0,0.8)] border-t border-neutral-850">
-        {/* Custom White Outline Watermark Logo behind content at 6% opacity */}
-        <div className="absolute inset-0 rounded-t-[32px] overflow-hidden pointer-events-none z-0">
-          <img 
-            src="https://i.ibb.co/2wtGGnh/logo2.png" 
-            alt="" 
-            className="absolute bottom-[-30px] right-[-30px] w-64 h-64 sm:w-80 sm:h-80 sm:bottom-[-40px] sm:right-[-40px] object-contain logo-inferior-card"
-            style={{ filter: 'brightness(0) invert(1)', opacity: 0.06 }}
-            referrerPolicy="no-referrer"
-          />
-        </div>
-
-        {/* Horizontal handle indicator */}
-        <div className="w-12 h-1 bg-neutral-800 rounded-full mx-auto mb-6 shrink-0 relative z-10" />
-
-        <div className="flex-1 relative z-10">
-          {/* Category Pill Tag & Product Code */}
-          <div className="flex items-center justify-between mb-4">
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-yellow-400/10 text-yellow-400 border border-yellow-400/20">
-              {categoryDetail.label}
-            </span>
-            <span className="text-xs text-zinc-500 font-bold">Cod: #{product.id.substring(0, 5)}</span>
-          </div>
-
-          {/* Product Title */}
-          <h3 className="text-2xl sm:text-3xl font-display font-black text-white leading-tight tracking-tight">
-            {product.name}
-          </h3>
-
-          {/* Attributes line */}
-          {product.featured && (
-            <div className="flex items-center mt-3.5 text-xs font-bold text-zinc-400">
-              <span className="flex items-center space-x-1 text-yellow-400">
-                <Crown className="w-3.5 h-3.5 fill-yellow-400" />
-                <span>Destaques do Latão</span>
-              </span>
-            </div>
-          )}
-
-          {/* Description text */}
-          <p className="text-zinc-300 text-xs sm:text-sm leading-relaxed mt-5 font-semibold">
-            {product.description || 'Uma receita autêntica e fresca preparada com ingredientes selecionados pelo chef. Perfeito para lanchar a qualquer hora do dia ou da noite.'}
-          </p>
-        </div>
-
-        {/* Bottom Action Bar */}
-        <div className="mt-8 pt-6 border-t border-neutral-900/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0 relative z-10">
-          <div>
-            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Preço Unitário</p>
-            <p className="text-xl sm:text-2xl font-black text-white mt-1">
-              {formatBRL(product.price)}
-            </p>
-          </div>
-
-          {product.available ? (
-            <div className="flex flex-col items-stretch sm:items-end space-y-3 w-full sm:w-auto">
-              {/* Stepper with Minus / Qty / Plus */}
-              <div className="flex items-center justify-between sm:justify-end space-x-3">
-                <span className="text-xs font-bold text-zinc-400">Quantidade:</span>
-                <div className="bg-neutral-900 border border-neutral-850 rounded-2xl p-1 flex items-center space-x-3">
-                  <button
-                    type="button"
-                    onClick={() => setQty(prev => Math.max(1, prev - 1))}
-                    className="p-2 text-zinc-400 hover:text-white hover:bg-neutral-850 rounded-xl transition-all cursor-pointer active:scale-95 flex items-center justify-center"
-                  >
-                    <Minus className="w-4 h-4" />
-                  </button>
-                  <span className="text-sm font-black text-white min-w-[20px] text-center">{qty}</span>
-                  <button
-                    type="button"
-                    onClick={() => setQty(prev => prev + 1)}
-                    className="p-2 text-zinc-400 hover:text-white hover:bg-neutral-850 rounded-xl transition-all cursor-pointer active:scale-95 flex items-center justify-center"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Prominent Golden Add to Cart Button right below quantity */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setCart((prevCart) => {
-                    const existing = prevCart.find((item) => item.product.id === product.id);
-                    if (existing) {
-                      return prevCart.map((item) =>
-                        item.product.id === product.id ? { ...item, quantity: qty } : item
-                      );
-                    } else {
-                      return [...prevCart, { product, quantity: qty }];
-                    }
-                  });
-                  onClose();
-                }}
-                className="w-full sm:w-auto px-6 py-3 bg-[#facc15] hover:bg-yellow-400 active:scale-95 text-black font-black text-xs sm:text-sm rounded-2xl shadow-lg shadow-yellow-500/10 transition-all flex items-center justify-center space-x-2 cursor-pointer"
-              >
-                <ShoppingBag className="w-4 h-4" />
-                <span>Adicionar ao carrinho ({formatBRL(product.price * qty)})</span>
-              </button>
-            </div>
-          ) : (
-            <span className="px-3.5 py-2 bg-neutral-900 text-zinc-500 rounded-xl font-bold text-xs uppercase tracking-wider border border-neutral-850">
-              Indisponível no momento
-            </span>
-          )}
-        </div>
-
-        {/* Back button option to close */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="mt-2 w-full py-3 border border-neutral-800 text-zinc-400 hover:text-white rounded-2xl text-xs font-bold transition-colors cursor-pointer bg-neutral-950/40 hover:bg-neutral-900/60"
-        >
-          Voltar ao Cardápio
-        </button>
-      </div>
-    </motion.div>
   );
 }
