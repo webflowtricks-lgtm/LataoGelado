@@ -223,3 +223,16 @@ export async function createOrder(order: Omit<Order, 'id'>) {
     throw error;
   }
 }
+
+/**
+ * Updates the payment status of an order.
+ */
+export async function updateOrderStatus(orderId: string, status: 'pending' | 'paid') {
+  const pathForOrder = `orders/${orderId}`;
+  try {
+    const docRef = doc(db, 'orders', orderId);
+    await setDoc(docRef, { status }, { merge: true });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, pathForOrder);
+  }
+}

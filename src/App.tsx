@@ -13,17 +13,11 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [path, setPath] = useState(window.location.pathname);
   const [password, setPassword] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('admin_authenticated') === 'true';
+  });
 
   const isPainel = path.startsWith('/painel');
-
-  // Reset authentication when leaving /painel
-  useEffect(() => {
-    if (!isPainel) {
-      setIsAuthenticated(false);
-      setPassword('');
-    }
-  }, [isPainel]);
 
   // Hook to capture navigation history changes programmatically
   useEffect(() => {
@@ -131,6 +125,7 @@ export default function App() {
     setPassword(val);
     if (val === 'latao@26@') {
       setIsAuthenticated(true);
+      localStorage.setItem('admin_authenticated', 'true');
     }
   };
 
@@ -138,6 +133,7 @@ export default function App() {
     e.preventDefault();
     if (password === 'latao@26@') {
       setIsAuthenticated(true);
+      localStorage.setItem('admin_authenticated', 'true');
     }
   };
 
@@ -146,6 +142,7 @@ export default function App() {
       // Allow form submission or handle directly
       if (password === 'latao@26@') {
         setIsAuthenticated(true);
+        localStorage.setItem('admin_authenticated', 'true');
       }
     }
   };
@@ -201,7 +198,9 @@ export default function App() {
             orders={orders}
             onNavigateToMenu={() => navigateTo('/')}
             onLogout={() => {
+              localStorage.removeItem('admin_authenticated');
               setIsAuthenticated(false);
+              setPassword('');
               navigateTo('/');
             }}
           />

@@ -48,4 +48,5 @@ export interface Order {
   deliveryFee: number;
   grandTotal: number;
   createdAt: string;
+  status?: 'pending' | 'paid';
 }

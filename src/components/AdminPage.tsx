@@ -22,14 +22,17 @@ import {
   ChevronDown,
   Crown,
   Upload,
-  LogOut
+  LogOut,
+  Printer,
+  Copy
 } from 'lucide-react';
 import { Product, StoreSettings, Order, ProductCategory, Category } from '../types';
 import { 
   addProduct, 
   updateProduct, 
   deleteProduct, 
-  updateStoreSettings 
+  updateStoreSettings,
+  updateOrderStatus
 } from '../dbService';
 import { ICON_MAP, getCategoryStyle } from './MenuPage';
 
@@ -48,14 +51,24 @@ const formatBRL = (value: number) => {
 export default function AdminPage({ products, settings, orders, onNavigateToMenu, onLogout }: AdminPageProps) {
   const [activeTab, setActiveTab] = useState<'pedidos' | 'produtos' | 'configuracoes'>('pedidos');
   
+  // Order status filter ('todos' | 'pendentes' | 'pagos')
+  const [orderFilter, setOrderFilter] = useState<'todos' | 'pendentes' | 'pagos'>('todos');
+  
   // Custom dialog/alert state
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     title: string;
     message: string;
     onConfirm: () => void;
+    confirmLabel?: string;
+    confirmButtonClass?: string;
+    iconType?: 'danger' | 'success';
   } | null>(null);
   const [customAlert, setCustomAlert] = useState<string | null>(null);
+
+  // States for print modal and receipt copy
+  const [printModalOrder, setPrintModalOrder] = useState<Order | null>(null);
+  const [copiedText, setCopiedText] = useState(false);
 
   // Product state
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -161,6 +174,9 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
       isOpen: true,
       title: "Excluir Produto?",
       message: "Tem certeza de que deseja excluir este produto do cardápio permanentemente?",
+      confirmLabel: "Excluir",
+      confirmButtonClass: "bg-rose-600 hover:bg-rose-700 text-white shadow-rose-600/10",
+      iconType: "danger",
       onConfirm: async () => {
         try {
           await deleteProduct(id);
@@ -170,6 +186,268 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
         setConfirmModal(null);
       }
     });
+  };
+
+  // Double confirmation workflow to mark an order as paid
+  const handleMarkAsPaid = (order: Order) => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Confirmar Pagamento (Passo 1/2)",
+      message: `Deseja marcar o pedido de ${order.customerName} (no valor de ${formatBRL(order.grandTotal)}) como PAGO?`,
+      confirmLabel: "Confirmar",
+      confirmButtonClass: "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/10",
+      iconType: "success",
+      onConfirm: () => {
+        setTimeout(() => {
+          setConfirmModal({
+            isOpen: true,
+            title: "TEM CERTEZA ABSOLUTA? (Passo 2/2)",
+            message: `Esta ação irá alterar o status de pagamento do pedido de ${order.customerName} permanentemente para EFETUADO. Confirmar?`,
+            confirmLabel: "Confirmar",
+            confirmButtonClass: "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/10",
+            iconType: "success",
+            onConfirm: async () => {
+              try {
+                await updateOrderStatus(order.id, 'paid');
+              } catch (error) {
+                console.error("Erro ao atualizar status do pedido:", error);
+              }
+              setConfirmModal(null);
+            }
+          });
+        }, 150);
+      }
+    });
+  };
+
+  // Helper to generate the plain text representation of the order for copying
+  const getPlainReceiptText = (order: Order) => {
+    const dateFormatted = new Date(order.createdAt).toLocaleString('pt-BR');
+    const border = '========================================';
+    const divider = '----------------------------------------';
+    const storeName = settings.storeName || 'CARDÁPIO DIGITAL';
+    
+    let text = `${border}\n`;
+    text += `${storeName.toUpperCase().padEnd(40)}\n`;
+    if (settings.whatsappNumber) text += `WhatsApp: ${settings.whatsappNumber}\n`;
+    text += `${border}\n`;
+    text += `PEDIDO: #${order.id.slice(-6).toUpperCase()}\n`;
+    text += `DATA: ${dateFormatted}\n`;
+    text += `CLIENTE: ${order.customerName}\n`;
+    text += `STATUS: ${order.status === 'paid' ? 'PAGO' : 'PENDENTE'}\n`;
+    text += `${divider}\n`;
+    text += `QTD ITEM                      TOTAL\n`;
+    text += `${divider}\n`;
+    
+    order.items.forEach(item => {
+      const qtyStr = `${item.quantity}x `;
+      const nameStr = item.name.slice(0, 24);
+      const priceStr = formatBRL(item.price * item.quantity);
+      // Format row nicely with spacing
+      const rowStart = qtyStr + nameStr;
+      const spacesNeeded = 40 - rowStart.length - priceStr.length;
+      const spaces = spacesNeeded > 0 ? ' '.repeat(spacesNeeded) : ' ';
+      text += `${rowStart}${spaces}${priceStr}\n`;
+    });
+    
+    text += `${divider}\n`;
+    
+    const subtotalStr = formatBRL(order.total);
+    const feeStr = formatBRL(order.deliveryFee);
+    const totalStr = formatBRL(order.grandTotal);
+    
+    text += `Subtotal:`.padEnd(30) + subtotalStr.padStart(10) + '\n';
+    text += `Taxa de Entrega:`.padEnd(30) + feeStr.padStart(10) + '\n';
+    text += `${divider}\n`;
+    text += `TOTAL GERAL:`.padEnd(30) + totalStr.padStart(10) + '\n';
+    text += `${border}\n`;
+    
+    if (order.observations) {
+      text += `OBSERVAÇÕES:\n${order.observations}\n`;
+      text += `${border}\n`;
+    }
+    
+    text += `Agradecemos a preferência!\n`;
+    return text;
+  };
+
+  // Helper to generate the Blob URL for direct tab printing
+  const getReceiptBlobUrl = (order: Order) => {
+    const dateFormatted = new Date(order.createdAt).toLocaleString('pt-BR');
+    const itemsHtml = order.items.map(item => `
+      <tr style="border-bottom: 1px dashed #cccccc;">
+        <td style="padding: 8px 0; font-size: 14px; font-weight: bold; font-family: monospace; text-align: left;">
+          ${item.quantity}x ${item.name}
+        </td>
+        <td style="padding: 8px 0; text-align: right; font-size: 14px; font-family: monospace; font-weight: bold;">
+          ${formatBRL(item.price * item.quantity)}
+        </td>
+      </tr>
+    `).join('');
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Pedido #${order.id.slice(-6).toUpperCase()}</title>
+        <style>
+          @media print {
+            body { 
+              margin: 0; 
+              padding: 0; 
+              width: 100%;
+            }
+            @page {
+              margin: 0;
+            }
+          }
+          body {
+            font-family: 'Courier New', Courier, monospace;
+            color: #000000;
+            margin: 0 auto;
+            padding: 20px 15px;
+            font-size: 14px;
+            line-height: 1.5;
+            max-width: 380px;
+            background: #ffffff;
+          }
+          .header {
+            border-bottom: 2px dashed #000000;
+            padding-bottom: 12px;
+            margin-bottom: 12px;
+            text-align: center;
+          }
+          .header h2 {
+            margin: 0 0 6px 0;
+            font-size: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+          }
+          .header p {
+            margin: 3px 0;
+            font-size: 12px;
+          }
+          .info {
+            font-size: 13px;
+            margin-bottom: 12px;
+            border-bottom: 2px dashed #000000;
+            padding-bottom: 10px;
+          }
+          .info p {
+            margin: 4px 0;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+          }
+          th {
+            border-bottom: 1px solid #000000;
+            text-align: left;
+            padding-bottom: 6px;
+            font-size: 13px;
+            text-transform: uppercase;
+          }
+          .totals {
+            border-top: 2px dashed #000000;
+            padding-top: 8px;
+            margin-top: 8px;
+            font-size: 13px;
+          }
+          .totals-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+          }
+          .grand-total {
+            font-size: 16px;
+            font-weight: bold;
+            border-top: 2px dashed #000000;
+            padding-top: 8px;
+            margin-top: 8px;
+          }
+          .observations {
+            margin-top: 15px;
+            border: 1px dashed #000000;
+            padding: 8px;
+            font-size: 12px;
+            background-color: #fafafa;
+          }
+          .footer {
+            margin-top: 25px;
+            text-align: center;
+            font-size: 12px;
+            border-top: 2px dashed #000000;
+            padding-top: 10px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h2>${settings.storeName || 'Cardápio Digital'}</h2>
+          ${settings.whatsappNumber ? `<p>Whats: ${settings.whatsappNumber}</p>` : ''}
+          <p style="font-weight: bold; margin-top: 8px; font-size: 13px; letter-spacing: 1px;">=== COMPROVANTE ===</p>
+        </div>
+        <div class="info">
+          <p><strong>PEDIDO:</strong> #${order.id.slice(-6).toUpperCase()}</p>
+          <p><strong>DATA:</strong> ${dateFormatted}</p>
+          <p><strong>CLIENTE:</strong> ${order.customerName}</p>
+          <p><strong>STATUS:</strong> ${order.status === 'paid' ? 'PAGO' : 'PENDENTE'}</p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th style="text-align: left;">Qtd/Item</th>
+              <th style="text-align: right;">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsHtml}
+          </tbody>
+        </table>
+        <div class="totals">
+          <div class="totals-row">
+            <span>Subtotal:</span>
+            <span>${formatBRL(order.total)}</span>
+          </div>
+          <div class="totals-row">
+            <span>Taxa de Entrega:</span>
+            <span>${formatBRL(order.deliveryFee)}</span>
+          </div>
+          <div class="totals-row grand-total">
+            <span>TOTAL GERAL:</span>
+            <span>${formatBRL(order.grandTotal)}</span>
+          </div>
+        </div>
+        ${order.observations ? `
+          <div class="observations">
+            <strong>OBSERVAÇÕES:</strong><br/>
+            ${order.observations}
+          </div>
+        ` : ''}
+        <div class="footer">
+          <p>Obrigado pela preferência!</p>
+          <p style="font-size: 10px; color: #555555; margin-top: 6px;">Gerado em ${new Date().toLocaleString('pt-BR')}</p>
+        </div>
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+            }, 300);
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    return URL.createObjectURL(blob);
+  };
+
+  // Printer workflow for printing an order receipt (suitable for kitchen / thermal printing)
+  const handlePrintOrder = (order: Order) => {
+    setPrintModalOrder(order);
   };
 
   // Save general store settings
@@ -251,6 +529,9 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
       isOpen: true,
       title: "Excluir Categoria?",
       message: confirmMsg,
+      confirmLabel: "Excluir",
+      confirmButtonClass: "bg-rose-600 hover:bg-rose-700 text-white shadow-rose-600/10",
+      iconType: "danger",
       onConfirm: async () => {
         const categoriesList = settings.categories || [];
         const newCategories = categoriesList.filter(c => c.id !== catId);
@@ -395,78 +676,170 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
           {/* TAB 1: LOGGED ORDERS */}
           {activeTab === 'pedidos' && (
             <div className="space-y-4 animate-fade-in">
-
-
-              {orders.length === 0 ? (
-                <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center shadow-xs">
-                  <ClipboardList className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                  <h3 className="font-bold text-slate-800">Nenhum pedido registrado ainda</h3>
-                  <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-                    Os pedidos efetuados pelos clientes no cardápio serão listados aqui em tempo real.
-                  </p>
+              {/* Order Status Filters */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-3">
+                <div>
+                  <h3 className="text-sm font-display font-bold text-slate-800">Filtrar Pedidos</h3>
+                  <p className="text-[11px] text-slate-400 font-semibold">Filtre por status de pagamento</p>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {orders.map((order) => {
-                    const dateFormatted = new Date(order.createdAt).toLocaleString('pt-BR');
-                    return (
-                      <div 
-                        key={order.id}
-                        className="bg-white rounded-2xl border border-slate-100 p-5 shadow-xs hover:shadow-md transition-shadow relative overflow-hidden"
-                      >
-                        {/* Decorative Top Accent */}
-                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-slate-200 to-slate-300" />
-                        
-                        <div className="flex justify-between items-start mb-3.5">
-                          <div>
-                            <h3 className="font-display font-black text-sm text-slate-900 truncate max-w-[180px]">
-                              {order.customerName}
-                            </h3>
-                            <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{dateFormatted}</p>
-                          </div>
-                          <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 rounded-md font-bold text-[10px] border border-indigo-100">
-                            Log Ativo
-                          </span>
-                        </div>
+                <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 self-start sm:self-auto">
+                  <button
+                    onClick={() => setOrderFilter('todos')}
+                    className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer ${
+                      orderFilter === 'todos'
+                        ? 'bg-white text-slate-900 shadow-xs'
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    Todos ({orders.length})
+                  </button>
+                  <button
+                    onClick={() => setOrderFilter('pendentes')}
+                    className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer ${
+                      orderFilter === 'pendentes'
+                        ? 'bg-white text-rose-600 shadow-xs'
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    Pendentes ({orders.filter(o => o.status !== 'paid').length})
+                  </button>
+                  <button
+                    onClick={() => setOrderFilter('pagos')}
+                    className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer ${
+                      orderFilter === 'pagos'
+                        ? 'bg-white text-emerald-600 shadow-xs'
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    Pagos ({orders.filter(o => o.status === 'paid').length})
+                  </button>
+                </div>
+              </div>
 
-                        {/* Order Products List */}
-                        <div className="space-y-2 py-3 border-y border-slate-100">
-                          {order.items.map((item, idx) => (
-                            <div key={idx} className="flex justify-between text-xs font-medium text-slate-600">
-                              <span>
-                                <span className="font-bold text-slate-900">{item.quantity}x</span> {item.name}
-                              </span>
-                              <span className="font-semibold text-slate-800">{formatBRL(item.price * item.quantity)}</span>
+              {(() => {
+                const filteredOrders = orders.filter((order) => {
+                  const isPaid = order.status === 'paid';
+                  if (orderFilter === 'pendentes') return !isPaid;
+                  if (orderFilter === 'pagos') return isPaid;
+                  return true;
+                });
+
+                if (filteredOrders.length === 0) {
+                  return (
+                    <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center shadow-xs">
+                      <ClipboardList className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                      <h3 className="font-bold text-slate-800">Nenhum pedido encontrado</h3>
+                      <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                        {orderFilter === 'todos' 
+                          ? 'Os pedidos efetuados pelos clientes no cardápio serão listados aqui em tempo real.'
+                          : orderFilter === 'pendentes'
+                          ? 'Não há nenhum pedido com pagamento pendente.'
+                          : 'Não há nenhum pedido com pagamento efetuado.'}
+                      </p>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {filteredOrders.map((order) => {
+                      const dateFormatted = new Date(order.createdAt).toLocaleString('pt-BR');
+                      const isPaid = order.status === 'paid';
+                      return (
+                        <div 
+                          key={order.id}
+                          className="bg-white rounded-2xl border border-slate-100 p-5 shadow-xs hover:shadow-md transition-shadow relative overflow-hidden"
+                        >
+                          {/* Decorative Top Accent */}
+                          <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${
+                            isPaid ? 'from-emerald-400 to-teal-500' : 'from-amber-400 to-orange-500'
+                          }`} />
+                          
+                          <div className="flex justify-between items-start mb-3.5">
+                            <div>
+                              <h3 className="font-display font-black text-sm text-slate-900 truncate max-w-[180px]">
+                                {order.customerName}
+                              </h3>
+                              <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{dateFormatted}</p>
                             </div>
-                          ))}
-                        </div>
+                            
+                            <div className="flex items-center space-x-1.5 shrink-0">
+                              <button
+                                onClick={() => handlePrintOrder(order)}
+                                title="Imprimir Pedido"
+                                className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all cursor-pointer flex items-center justify-center border border-slate-200 bg-slate-50/50 shadow-3xs"
+                              >
+                                <Printer className="w-3.5 h-3.5" />
+                              </button>
 
-                        {/* Observations */}
-                        <div className="mt-3 bg-slate-50 rounded-lg p-2.5 border border-slate-100">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Observações:</p>
-                          <p className="text-xs font-medium text-slate-700 mt-0.5 leading-relaxed">
-                            {order.observations}
-                          </p>
-                        </div>
+                              {isPaid ? (
+                                <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 rounded-md font-bold text-[10px] border border-emerald-100 flex items-center space-x-1 shrink-0">
+                                  <Check className="w-3 h-3 stroke-[3]" />
+                                  <span>Pago</span>
+                                </span>
+                              ) : (
+                                <span className="px-2.5 py-0.5 bg-amber-50 text-amber-700 rounded-md font-bold text-[10px] border border-amber-100 flex items-center space-x-1 shrink-0">
+                                  <AlertTriangle className="w-3 h-3 stroke-[2.5]" />
+                                  <span>Pendente</span>
+                                </span>
+                              )}
+                            </div>
+                          </div>
 
-                        {/* Pricing details */}
-                        <div className="mt-4 flex items-center justify-between">
-                          <div>
-                            <p className="text-[10px] font-semibold text-slate-400 uppercase">Total Geral</p>
-                            <p className="font-display font-extrabold text-base text-slate-900">
-                              {formatBRL(order.grandTotal)}
-                            </p>
+                          {/* Order Products List */}
+                          <div className="space-y-2 py-3 border-y border-slate-100">
+                            {order.items.map((item, idx) => (
+                              <div key={idx} className="flex justify-between text-xs font-medium text-slate-600">
+                                <span>
+                                  <span className="font-bold text-slate-900">{item.quantity}x</span> {item.name}
+                                </span>
+                                <span className="font-semibold text-slate-800">{formatBRL(item.price * item.quantity)}</span>
+                              </div>
+                            ))}
                           </div>
-                          <div className="text-right">
-                            <p className="text-[9px] text-slate-400 font-medium">Taxa: {formatBRL(order.deliveryFee)}</p>
-                            <p className="text-[9px] text-slate-400 font-medium">Subtotal: {formatBRL(order.total)}</p>
+
+                          {/* Observations */}
+                          {order.observations && (
+                            <div className="mt-3 bg-slate-50 rounded-lg p-2.5 border border-slate-100">
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Observações:</p>
+                              <p className="text-xs font-medium text-slate-700 mt-0.5 leading-relaxed">
+                                {order.observations}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Pricing details */}
+                          <div className="mt-4 flex items-center justify-between">
+                            <div>
+                              <p className="text-[10px] font-semibold text-slate-400 uppercase">Total Geral</p>
+                              <p className="font-display font-extrabold text-base text-slate-900">
+                                {formatBRL(order.grandTotal)}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-[9px] text-slate-400 font-medium">Taxa: {formatBRL(order.deliveryFee)}</p>
+                              <p className="text-[9px] text-slate-400 font-medium">Subtotal: {formatBRL(order.total)}</p>
+                            </div>
                           </div>
+
+                          {/* Order Payment Confirmation Action */}
+                          {!isPaid && (
+                            <div className="mt-4 pt-3.5 border-t border-dashed border-slate-150 flex justify-end">
+                              <button
+                                onClick={() => handleMarkAsPaid(order)}
+                                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs py-2.5 rounded-xl flex items-center justify-center space-x-1.5 cursor-pointer shadow-xs transition-all hover:scale-[1.02]"
+                              >
+                                <Check className="w-3.5 h-3.5 stroke-[3]" />
+                                <span>Confirmar Pagamento</span>
+                              </button>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
           )}
 
@@ -1160,9 +1533,15 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-white rounded-3xl shadow-2xl z-[101] p-6 text-center border border-slate-100"
             >
-              <div className="w-12 h-12 bg-rose-50 border border-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertTriangle className="w-6 h-6 animate-pulse" />
-              </div>
+              {confirmModal.iconType === 'success' ? (
+                <div className="w-12 h-12 bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                  <Check className="w-6 h-6 stroke-[3]" />
+                </div>
+              ) : (
+                <div className="w-12 h-12 bg-rose-50 border border-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <AlertTriangle className="w-6 h-6 animate-pulse" />
+                </div>
+              )}
               
               <h3 className="font-display font-bold text-slate-900 text-base mb-2">
                 {confirmModal.title}
@@ -1183,9 +1562,11 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
                 <button
                   type="button"
                   onClick={confirmModal.onConfirm}
-                  className="flex-1 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl cursor-pointer transition-colors shadow-md shadow-rose-600/10"
+                  className={`flex-1 py-3 font-bold text-xs rounded-xl cursor-pointer transition-colors shadow-md ${
+                    confirmModal.confirmButtonClass || 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-600/10'
+                  }`}
                 >
-                  Excluir
+                  {confirmModal.confirmLabel || 'Excluir'}
                 </button>
               </div>
             </motion.div>
@@ -1230,6 +1611,168 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
               >
                 Entendido
               </button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Visual Print and Receipt Modal */}
+      <AnimatePresence>
+        {printModalOrder && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.6 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setPrintModalOrder(null)}
+              className="fixed inset-0 bg-[#0c0c0d] z-[110] backdrop-blur-xs"
+            />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-slate-100 rounded-3xl shadow-2xl z-[111] p-5 max-h-[95vh] flex flex-col border border-slate-200"
+            >
+              {/* Modal Header */}
+              <div className="flex justify-between items-center pb-3 border-b border-slate-200 mb-4 shrink-0">
+                <div className="flex items-center space-x-2">
+                  <div className="p-2 bg-slate-900 text-white rounded-lg">
+                    <Printer className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-bold text-slate-900 text-sm">
+                      Comprovante do Pedido
+                    </h3>
+                    <p className="text-[10px] text-slate-400 font-semibold">
+                      #{printModalOrder.id.slice(-6).toUpperCase()} • {printModalOrder.customerName}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setPrintModalOrder(null)}
+                  className="p-1.5 hover:bg-slate-200 rounded-full text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Modal Body with thermal receipt preview */}
+              <div className="flex-1 overflow-y-auto pr-1 space-y-4 mb-4 select-text">
+                <div className="relative bg-white border border-slate-200 rounded-2xl p-5 shadow-xs font-mono text-slate-800 text-xs overflow-hidden leading-relaxed">
+                  {/* Decorative top border visual */}
+                  <div className="absolute top-0 left-0 right-0 h-1.5 bg-slate-900" />
+                  
+                  {/* Receipt content wrapper */}
+                  <div className="text-center pb-3 border-b border-dashed border-slate-300">
+                    <h4 className="font-bold text-sm text-slate-900 uppercase tracking-wide">
+                      {settings.storeName || 'Cardápio Digital'}
+                    </h4>
+                    {settings.whatsappNumber && <p className="text-[10px] text-slate-500 mt-0.5">Whats: {settings.whatsappNumber}</p>}
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1.5">=== VIA DA COZINHA ===</p>
+                  </div>
+
+                  {/* Info details */}
+                  <div className="py-2.5 border-b border-dashed border-slate-300 text-[11px] space-y-0.5">
+                    <p><strong>PEDIDO:</strong> #{printModalOrder.id.slice(-6).toUpperCase()}</p>
+                    <p><strong>DATA:</strong> {new Date(printModalOrder.createdAt).toLocaleString('pt-BR')}</p>
+                    <p><strong>CLIENTE:</strong> {printModalOrder.customerName}</p>
+                    <p><strong>PAGAMENTO:</strong> {printModalOrder.status === 'paid' ? 'PAGO' : 'PENDENTE'}</p>
+                  </div>
+
+                  {/* Table header */}
+                  <table className="w-full text-left my-2.5">
+                    <thead>
+                      <tr className="border-b border-slate-300 text-[10px] text-slate-400 font-bold">
+                        <th className="pb-1 font-mono">Qtd/Item</th>
+                        <th className="pb-1 font-mono text-right">Preço</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-dashed divide-slate-150">
+                      {printModalOrder.items.map((item, idx) => (
+                        <tr key={idx} className="text-[11px]">
+                          <td className="py-2 pr-2 font-bold text-slate-900">
+                            {item.quantity}x {item.name}
+                          </td>
+                          <td className="py-2 text-right text-slate-700">
+                            {formatBRL(item.price * item.quantity)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  {/* Totals */}
+                  <div className="pt-2.5 border-t border-dashed border-slate-300 text-[11px] space-y-1">
+                    <div className="flex justify-between">
+                      <span>Subtotal:</span>
+                      <span>{formatBRL(printModalOrder.total)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Taxa de Entrega:</span>
+                      <span>{formatBRL(printModalOrder.deliveryFee)}</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-sm text-slate-900 pt-1.5 border-t border-dashed border-slate-200">
+                      <span>TOTAL:</span>
+                      <span>{formatBRL(printModalOrder.grandTotal)}</span>
+                    </div>
+                  </div>
+
+                  {/* Observations */}
+                  {printModalOrder.observations && (
+                    <div className="mt-4 p-2 bg-slate-50 border border-slate-200 rounded-lg text-[10px] leading-normal">
+                      <strong className="text-slate-400">OBSERVAÇÕES:</strong>
+                      <p className="mt-0.5 font-medium text-slate-700 whitespace-pre-line">{printModalOrder.observations}</p>
+                    </div>
+                  )}
+
+                  <div className="text-center text-[10px] text-slate-400 mt-5 pt-2 border-t border-dashed border-slate-200">
+                    <p>Agradecemos a preferência!</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="grid grid-cols-2 gap-3 shrink-0">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(getPlainReceiptText(printModalOrder));
+                      setCopiedText(true);
+                      setTimeout(() => setCopiedText(false), 2000);
+                    } catch (err) {
+                      console.error("Erro ao copiar texto:", err);
+                    }
+                  }}
+                  className="py-3 px-2 bg-slate-800 hover:bg-slate-750 text-white font-bold text-xs rounded-xl cursor-pointer transition-colors flex items-center justify-center space-x-1.5 shadow-sm"
+                >
+                  {copiedText ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-400 stroke-[3]" />
+                      <span className="text-emerald-400">Texto Copiado!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copiar Texto</span>
+                    </>
+                  )}
+                </button>
+                
+                <a
+                  href={getReceiptBlobUrl(printModalOrder)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="py-3 px-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl cursor-pointer transition-all flex items-center justify-center space-x-1.5 shadow-md shadow-emerald-600/15 hover:scale-[1.02]"
+                >
+                  <Printer className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>Imprimir Nota</span>
+                </a>
+              </div>
+              <p className="text-[10px] text-slate-400 text-center font-medium mt-3">
+                Dica: O botão <strong className="text-slate-500">Imprimir Nota</strong> abre uma nova aba imune a bloqueios para impressão direta em impressoras térmicas ou papel A4!
+              </p>
             </motion.div>
           </>
         )}
