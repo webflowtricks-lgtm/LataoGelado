@@ -222,6 +222,38 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
     });
   };
 
+  // Double confirmation workflow to mark an order as pending
+  const handleMarkAsPending = (order: Order) => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Alterar para Pendente (Passo 1/2)",
+      message: `Deseja alterar o status do pedido de ${order.customerName} (no valor de ${formatBRL(order.grandTotal)}) para PENDENTE?`,
+      confirmLabel: "Confirmar",
+      confirmButtonClass: "bg-amber-600 hover:bg-amber-700 text-white shadow-amber-600/10",
+      iconType: "warning",
+      onConfirm: () => {
+        setTimeout(() => {
+          setConfirmModal({
+            isOpen: true,
+            title: "TEM CERTEZA ABSOLUTA? (Passo 2/2)",
+            message: `Esta ação irá reverter o status do pedido de ${order.customerName} de Pago para PENDENTE. Confirmar?`,
+            confirmLabel: "Confirmar",
+            confirmButtonClass: "bg-amber-600 hover:bg-amber-700 text-white shadow-amber-600/10",
+            iconType: "warning",
+            onConfirm: async () => {
+              try {
+                await updateOrderStatus(order.id, 'pending');
+              } catch (error) {
+                console.error("Erro ao atualizar status do pedido:", error);
+              }
+              setConfirmModal(null);
+            }
+          });
+        }, 150);
+      }
+    });
+  };
+
   // Helper to generate the plain text representation of the order for copying
   const getPlainReceiptText = (order: Order) => {
     const dateFormatted = new Date(order.createdAt).toLocaleString('pt-BR');
@@ -793,9 +825,14 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
                           
                           <div className="flex justify-between items-start mb-3.5">
                             <div>
-                              <h3 className="font-display font-black text-sm text-slate-900 truncate max-w-[180px]">
-                                {order.customerName}
-                              </h3>
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <h3 className="font-display font-black text-sm text-slate-900 truncate max-w-[150px]" title={order.customerName}>
+                                  {order.customerName}
+                                </h3>
+                                <span className="text-[10px] text-slate-400 font-mono font-semibold select-all bg-slate-50 border border-slate-100 rounded px-1 py-0.5 shrink-0">
+                                  #{order.id.slice(-6).toUpperCase()}
+                                </span>
+                              </div>
                               <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{dateFormatted}</p>
                             </div>
                             
@@ -859,7 +896,17 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
                           </div>
 
                           {/* Order Payment Confirmation Action */}
-                          {!isPaid && (
+                          {isPaid ? (
+                            <div className="mt-4 pt-3.5 border-t border-dashed border-slate-150 flex justify-end">
+                              <button
+                                onClick={() => handleMarkAsPending(order)}
+                                className="w-full bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 font-extrabold text-xs py-2.5 rounded-xl flex items-center justify-center space-x-1.5 cursor-pointer shadow-xs transition-all hover:scale-[1.02]"
+                              >
+                                <AlertTriangle className="w-3.5 h-3.5" />
+                                <span>Alterar para Pendente</span>
+                              </button>
+                            </div>
+                          ) : (
                             <div className="mt-4 pt-3.5 border-t border-dashed border-slate-150 flex justify-end">
                               <button
                                 onClick={() => handleMarkAsPaid(order)}
