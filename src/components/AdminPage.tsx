@@ -24,7 +24,8 @@ import {
   Upload,
   LogOut,
   Printer,
-  Copy
+  Copy,
+  Search
 } from 'lucide-react';
 import { Product, StoreSettings, Order, ProductCategory, Category } from '../types';
 import { 
@@ -69,6 +70,7 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
   // States for print modal and receipt copy
   const [printModalOrder, setPrintModalOrder] = useState<Order | null>(null);
   const [copiedText, setCopiedText] = useState(false);
+  const [orderSearchQuery, setOrderSearchQuery] = useState('');
 
   // Product state
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -267,7 +269,7 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
       text += `${border}\n`;
     }
     
-    text += `Agradecemos a preferência!\n`;
+    text += `Seu Happy Hour começa aqui!\n`;
     return text;
   };
 
@@ -387,7 +389,7 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
         <div class="header">
           <h2>${settings.storeName || 'Cardápio Digital'}</h2>
           ${settings.whatsappNumber ? `<p>Whats: ${settings.whatsappNumber}</p>` : ''}
-          <p style="font-weight: bold; margin-top: 8px; font-size: 13px; letter-spacing: 1px;">=== COMPROVANTE ===</p>
+          <p style="font-weight: bold; margin-top: 8px; font-size: 13px; letter-spacing: 1px;">=== SEU HAPPY HOUR COMEÇA AQUI! ===</p>
         </div>
         <div class="info">
           <p><strong>PEDIDO:</strong> #${order.id.slice(-6).toUpperCase()}</p>
@@ -427,7 +429,7 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
           </div>
         ` : ''}
         <div class="footer">
-          <p>Obrigado pela preferência!</p>
+          <p>Seu Happy Hour começa aqui!</p>
           <p style="font-size: 10px; color: #555555; margin-top: 6px;">Gerado em ${new Date().toLocaleString('pt-BR')}</p>
         </div>
         <script>
@@ -676,51 +678,83 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
           {/* TAB 1: LOGGED ORDERS */}
           {activeTab === 'pedidos' && (
             <div className="space-y-4 animate-fade-in">
-              {/* Order Status Filters */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-3">
-                <div>
-                  <h3 className="text-sm font-display font-bold text-slate-800">Filtrar Pedidos</h3>
-                  <p className="text-[11px] text-slate-400 font-semibold">Filtre por status de pagamento</p>
+              {/* Order Status & Search Filters */}
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-100 pb-4">
+                <div className="flex-1 max-w-md relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <Search className="h-4 w-4 text-slate-400" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Buscar por nome do cliente ou nº do pedido..."
+                    value={orderSearchQuery}
+                    onChange={(e) => setOrderSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 text-slate-800 text-xs rounded-2xl focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-800 placeholder:text-slate-400 font-medium shadow-3xs"
+                  />
+                  {orderSearchQuery && (
+                    <button
+                      onClick={() => setOrderSearchQuery('')}
+                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 text-[10px] font-bold cursor-pointer"
+                    >
+                      Limpar
+                    </button>
+                  )}
                 </div>
-                <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 self-start sm:self-auto">
-                  <button
-                    onClick={() => setOrderFilter('todos')}
-                    className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer ${
-                      orderFilter === 'todos'
-                        ? 'bg-white text-slate-900 shadow-xs'
-                        : 'text-slate-500 hover:text-slate-800'
-                    }`}
-                  >
-                    Todos ({orders.length})
-                  </button>
-                  <button
-                    onClick={() => setOrderFilter('pendentes')}
-                    className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer ${
-                      orderFilter === 'pendentes'
-                        ? 'bg-white text-rose-600 shadow-xs'
-                        : 'text-slate-500 hover:text-slate-800'
-                    }`}
-                  >
-                    Pendentes ({orders.filter(o => o.status !== 'paid').length})
-                  </button>
-                  <button
-                    onClick={() => setOrderFilter('pagos')}
-                    className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer ${
-                      orderFilter === 'pagos'
-                        ? 'bg-white text-emerald-600 shadow-xs'
-                        : 'text-slate-500 hover:text-slate-800'
-                    }`}
-                  >
-                    Pagos ({orders.filter(o => o.status === 'paid').length})
-                  </button>
+
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  <div className="hidden sm:block text-right">
+                    <h3 className="text-[10px] font-display font-bold text-slate-800 uppercase tracking-wider">Filtrar por Status</h3>
+                  </div>
+                  <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 self-start sm:self-auto shrink-0">
+                    <button
+                      onClick={() => setOrderFilter('todos')}
+                      className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer ${
+                        orderFilter === 'todos'
+                          ? 'bg-white text-slate-900 shadow-xs'
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      Todos ({orders.length})
+                    </button>
+                    <button
+                      onClick={() => setOrderFilter('pendentes')}
+                      className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer ${
+                        orderFilter === 'pendentes'
+                          ? 'bg-white text-rose-600 shadow-xs'
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      Pendentes ({orders.filter(o => o.status !== 'paid').length})
+                    </button>
+                    <button
+                      onClick={() => setOrderFilter('pagos')}
+                      className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer ${
+                        orderFilter === 'pagos'
+                          ? 'bg-white text-emerald-600 shadow-xs'
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      Pagos ({orders.filter(o => o.status === 'paid').length})
+                    </button>
+                  </div>
                 </div>
               </div>
 
               {(() => {
                 const filteredOrders = orders.filter((order) => {
                   const isPaid = order.status === 'paid';
-                  if (orderFilter === 'pendentes') return !isPaid;
-                  if (orderFilter === 'pagos') return isPaid;
+                  if (orderFilter === 'pendentes' && isPaid) return false;
+                  if (orderFilter === 'pagos' && !isPaid) return false;
+
+                  if (orderSearchQuery.trim() !== '') {
+                    const query = orderSearchQuery.toLowerCase().trim();
+                    const nameMatch = order.customerName.toLowerCase().includes(query);
+                    const idMatch = order.id.toLowerCase().includes(query) ||
+                                    `#${order.id.slice(-6).toUpperCase()}`.toLowerCase().includes(query) ||
+                                    order.id.slice(-6).toLowerCase().includes(query);
+                    return nameMatch || idMatch;
+                  }
+
                   return true;
                 });
 
@@ -730,7 +764,9 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
                       <ClipboardList className="w-12 h-12 text-slate-300 mx-auto mb-3" />
                       <h3 className="font-bold text-slate-800">Nenhum pedido encontrado</h3>
                       <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-                        {orderFilter === 'todos' 
+                        {orderSearchQuery.trim() !== ''
+                          ? 'Nenhum pedido corresponde à sua busca por "' + orderSearchQuery + '".'
+                          : orderFilter === 'todos' 
                           ? 'Os pedidos efetuados pelos clientes no cardápio serão listados aqui em tempo real.'
                           : orderFilter === 'pendentes'
                           ? 'Não há nenhum pedido com pagamento pendente.'
@@ -1669,7 +1705,7 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
                       {settings.storeName || 'Cardápio Digital'}
                     </h4>
                     {settings.whatsappNumber && <p className="text-[10px] text-slate-500 mt-0.5">Whats: {settings.whatsappNumber}</p>}
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1.5">=== VIA DA COZINHA ===</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1.5">=== SEU HAPPY HOUR COMEÇA AQUI! ===</p>
                   </div>
 
                   {/* Info details */}
@@ -1727,7 +1763,7 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
                   )}
 
                   <div className="text-center text-[10px] text-slate-400 mt-5 pt-2 border-t border-dashed border-slate-200">
-                    <p>Agradecemos a preferência!</p>
+                    <p>Seu Happy Hour começa aqui!</p>
                   </div>
                 </div>
               </div>
