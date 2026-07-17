@@ -311,9 +311,20 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
 
     // 3. Open WhatsApp link
     const sanitizedPhone = settings.whatsappNumber.replace(/\D/g, '');
-    const whatsappUrl = `https://api.whatsapp.com/send?phone=${sanitizedPhone}&text=${encodeURIComponent(message)}`;
+    // Using wa.me is the modern, official recommended standard that seamlessly handles redirects on both iOS and Android
+    const whatsappUrl = `https://wa.me/${sanitizedPhone}?text=${encodeURIComponent(message)}`;
     
-    window.open(whatsappUrl, '_blank');
+    // Attempt to open in a new window first (preferred for desktop).
+    // If it gets blocked by mobile popup blockers (common on iOS/mobile browsers after an asynchronous 'await'),
+    // we fallback to redirecting the current window which never gets blocked and opens WhatsApp natively.
+    try {
+      const newWindow = window.open(whatsappUrl, '_blank');
+      if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+        window.location.href = whatsappUrl;
+      }
+    } catch (e) {
+      window.location.href = whatsappUrl;
+    }
 
     // 4. Reset Cart
     setCart([]);
