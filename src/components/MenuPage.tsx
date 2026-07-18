@@ -109,7 +109,7 @@ export const CATEGORY_MAP = {
   lanches: { label: 'Lanches', icon: UtensilsCrossed, color: 'from-red-400 to-red-600', bg: 'bg-red-500/10 text-red-400 border-red-500/20' }
 };
 
-// Store address coordinates (Rua Waldomiro Fernandes, 88 - Tokio, Londrina - PR)
+// Store address coordinates (Rua Waldomiro Fernandes, 90 - Tokio, Londrina - PR)
 const STORE_LAT = -23.32185;
 const STORE_LON = -51.18128;
 
@@ -246,6 +246,44 @@ function isValidAddressMatch(searchAddress: string, displayName: string): boolea
 
 // Geocode with multiple layered fallbacks for high resilience
 async function fetchCoordinatesWithFallback(address: string): Promise<{ lat: number; lon: number; success: boolean }> {
+  // Try 0: CEP (Postal Code) API search for high precision in Brazil
+  const cepMatch = address.match(/\b(\d{5})-?(\d{3})\b/);
+  if (cepMatch) {
+    const cep = cepMatch[1] + cepMatch[2];
+    try {
+      const response = await fetch(`https://cep.awesomeapi.com.br/json/${cep}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.lat && data.lng) {
+          const lat = parseFloat(data.lat);
+          const lon = parseFloat(data.lng);
+          // Ensure it's in Londrina to avoid false positives
+          if (data.city && data.city.toLowerCase().includes('londrina')) {
+            return { lat, lon, success: true };
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Error fetching CEP from AwesomeAPI:", e);
+    }
+
+    try {
+      const response = await fetch(`https://brasilapi.com.br/api/cep/v2/${cep}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.location && data.location.coordinates) {
+          const lat = parseFloat(data.location.coordinates.latitude);
+          const lon = parseFloat(data.location.coordinates.longitude);
+          if (data.city && data.city.toLowerCase().includes('londrina')) {
+            return { lat, lon, success: true };
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Error fetching CEP from BrasilAPI:", e);
+    }
+  }
+
   const { street, number, cleanQuery } = cleanBrazilianAddress(address);
   
   // Try 1: Structured Search with Nominatim (Street + City + State + Country)
@@ -1193,7 +1231,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setSelectedProduct(product);
+                                updateQuantity(product, 1, e);
                               }}
                               className={`w-9 h-9 flex items-center justify-center transition-all duration-200 active:scale-90 hover:scale-105 cursor-pointer rounded-tl-[16px] rounded-br-[16px] rounded-tr-[4px] rounded-bl-[4px] ${
                                 quantity > 0 
@@ -1726,7 +1764,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                       : 'bg-neutral-800 text-zinc-500 cursor-not-allowed'
                   }`}
                 >
-                  <MessageCircle className="w-5 h-5 fill-black stroke-black" />
+                  <MessageCircle className="w-5 h-5 fill-none stroke-black" />
                   <span>
                     {settings.isOpen 
                       ? 'Enviar Pedido para o WhatsApp' 
