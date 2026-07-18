@@ -6,6 +6,9 @@ import AdminPage from './components/AdminPage';
 import { subscribeProducts, subscribeSettings, subscribeOrders } from './dbService';
 import { Product, StoreSettings, Order } from './types';
 
+// Expose Google Maps Platform key to trigger the setup secrets popup in AI Studio
+const GOOGLE_MAPS_PLATFORM_KEY = process.env.GOOGLE_MAPS_PLATFORM_KEY || '';
+
 export default function App() {
   const [products, setProducts] = useState<Product[]>([]);
   const [settings, setSettings] = useState<StoreSettings | null>(null);

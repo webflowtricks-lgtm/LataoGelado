@@ -11,8 +11,8 @@ export const DEFAULT_CATEGORIES: Category[] = [
 
 export const DEFAULT_SETTINGS: StoreSettings = {
   storeName: "Bar & Lanchonete Premium",
-  whatsappNumber: "5511999999999", // Editable placeholder
-  address: "Av. Paulista, 1000 - Bela Vista, São Paulo - SP",
+  whatsappNumber: "5543999999999", // Editable placeholder
+  address: "Rua Waldomiro Fernandes, 90 - Jardim Tokio, Londrina - PR",
   deliveryFee: 7.00,
   isOpen: true,
   categories: DEFAULT_CATEGORIES

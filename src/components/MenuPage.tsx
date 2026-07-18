@@ -44,6 +44,7 @@ import {
 } from 'lucide-react';
 import { Product, StoreSettings, CartItem } from '../types';
 import { createOrder } from '../dbService';
+import { LONDRINA_STREETS } from '../data/londrinaAddresses';
 
 interface MenuPageProps {
   products: Product[];
@@ -110,8 +111,8 @@ export const CATEGORY_MAP = {
 };
 
 // Store address coordinates (Rua Waldomiro Fernandes, 90 - Tokio, Londrina - PR)
-const STORE_LAT = -23.32185;
-const STORE_LON = -51.18128;
+const STORE_LAT = -23.3112214;
+const STORE_LON = -51.1968773;
 
 // Distance calculation using Haversine formula (returns km)
 function calculateHaversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -125,6 +126,27 @@ function calculateHaversineDistance(lat1: number, lon1: number, lat2: number, lo
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   const d = R * c; // Distance in km
   return parseFloat(d.toFixed(2));
+}
+
+// Calculates driving distance (via road network) using OSRM, falls back to Haversine * 1.3
+async function calculateDrivingDistance(lat1: number, lon1: number, lat2: number, lon2: number): Promise<number> {
+  try {
+    const url = `https://router.project-osrm.org/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?overview=false`;
+    const response = await fetch(url);
+    if (response.ok) {
+      const data = await response.json();
+      if (data && data.routes && data.routes.length > 0) {
+        const distanceMeters = data.routes[0].distance;
+        return parseFloat((distanceMeters / 1000).toFixed(2));
+      }
+    }
+  } catch (e) {
+    console.error("OSRM driving distance error, falling back to Haversine with routing factor:", e);
+  }
+  
+  // Fallback to Haversine * 1.3 (approximated routing coefficient)
+  const haversine = calculateHaversineDistance(lat1, lon1, lat2, lon2);
+  return parseFloat((haversine * 1.3).toFixed(2));
 }
 
 // Delivery fee pricing model based on radius from the store
@@ -400,6 +422,47 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
   const [orderSuccess, setOrderSuccess] = useState(false);
 
   const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [streetInput, setStreetInput] = useState('');
+  const [houseNumberInput, setHouseNumberInput] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const numberInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  // Keep deliveryAddress in sync with streetInput and houseNumberInput
+  useEffect(() => {
+    const s = streetInput.trim();
+    const n = houseNumberInput.trim();
+    if (!s) {
+      setDeliveryAddress('');
+    } else {
+      setDeliveryAddress(n ? `${s}, ${n}` : s);
+    }
+  }, [streetInput, houseNumberInput]);
+
+  const filteredStreets = useMemo(() => {
+    if (!streetInput.trim()) return [];
+    
+    // Skip if input is already exact selected format (like "Rua ...")
+    // but keep suggestions if they are actively editing or searching
+    const query = streetInput.toLowerCase();
+    
+    return LONDRINA_STREETS.filter(s => {
+      const name = s.name.toLowerCase();
+      const neighborhood = s.neighborhood.toLowerCase();
+      
+      if (name.includes(query) || neighborhood.includes(query)) {
+        return true;
+      }
+      
+      let altQuery = query;
+      if (query.startsWith('r ')) altQuery = query.replace(/^r /, 'rua ');
+      else if (query.startsWith('av ')) altQuery = query.replace(/^av /, 'avenida ');
+      else if (query.startsWith('r. ')) altQuery = query.replace(/^r\. /, 'rua ');
+      else if (query.startsWith('av. ')) altQuery = query.replace(/^av\. /, 'avenida ');
+      
+      return name.includes(altQuery) || neighborhood.includes(altQuery);
+    }).slice(0, 8);
+  }, [streetInput]);
+
   const [deliveryDistance, setDeliveryDistance] = useState<number | null>(null);
   const [deliveryFee, setDeliveryFee] = useState<number>(0);
   const [isCalculatingFee, setIsCalculatingFee] = useState(false);
@@ -418,16 +481,31 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
       setIsCalculatingFee(true);
       setFeeError(null);
       try {
-        const result = await fetchCoordinatesWithFallback(deliveryAddress);
-        if (result.success) {
-          const distance = calculateHaversineDistance(STORE_LAT, STORE_LON, result.lat, result.lon);
-          const fee = calculateDeliveryFeeByDistance(distance);
+        const response = await fetch("/api/delivery-info", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            storeAddress: settings.address,
+            deliveryAddress: deliveryAddress,
+          }),
+        });
 
-          setDeliveryDistance(distance);
-          setDeliveryFee(fee);
-          setFeeError(null);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setDeliveryDistance(data.distanceKm);
+            setDeliveryFee(data.deliveryFee);
+            setFeeError(null);
+          } else {
+            setFeeError(data.error || 'Endereço não localizado. Tente informar rua e número.');
+            setDeliveryDistance(null);
+            setDeliveryFee(0);
+          }
         } else {
-          setFeeError('Endereço não localizado. Tente informar rua e número.');
+          const errData = await response.json().catch(() => ({}));
+          setFeeError(errData.error || 'Endereço não localizado. Tente informar rua e número.');
           setDeliveryDistance(null);
           setDeliveryFee(0);
         }
@@ -442,22 +520,38 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
     }, 1000); // 1s debounce
 
     return () => clearTimeout(delayDebounceFn);
-  }, [deliveryAddress]);
+  }, [deliveryAddress, settings.address]);
 
   const triggerManualCalculation = async () => {
     if (!deliveryAddress.trim()) return;
     setIsCalculatingFee(true);
     setFeeError(null);
     try {
-      const result = await fetchCoordinatesWithFallback(deliveryAddress);
-      if (result.success) {
-        const distance = calculateHaversineDistance(STORE_LAT, STORE_LON, result.lat, result.lon);
-        const fee = calculateDeliveryFeeByDistance(distance);
-        setDeliveryDistance(distance);
-        setDeliveryFee(fee);
-        setFeeError(null);
+      const response = await fetch("/api/delivery-info", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          storeAddress: settings.address,
+          deliveryAddress: deliveryAddress,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setDeliveryDistance(data.distanceKm);
+          setDeliveryFee(data.deliveryFee);
+          setFeeError(null);
+        } else {
+          setFeeError(data.error || 'Endereço não localizado. Tente informar rua e número.');
+          setDeliveryDistance(null);
+          setDeliveryFee(0);
+        }
       } else {
-        setFeeError('Endereço não localizado. Tente informar rua e número.');
+        const errData = await response.json().catch(() => ({}));
+        setFeeError(errData.error || 'Endereço não localizado. Tente informar rua e número.');
         setDeliveryDistance(null);
         setDeliveryFee(0);
       }
@@ -718,6 +812,8 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
     setCustomerName('');
     setObservations('');
     setPaymentMethod('pix');
+    setStreetInput('');
+    setHouseNumberInput('');
     setDeliveryAddress('');
     setDeliveryDistance(null);
     setDeliveryFee(0);
@@ -1593,39 +1689,96 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                         Cálculo Automático por Raio
                       </span>
                     </label>
-                    <div className="flex gap-2">
-                      <div className="relative flex-1">
-                        <MapPin className="w-4 h-4 text-zinc-400 absolute left-4 top-1/2 -translate-y-1/2" />
-                        <input 
-                          type="text"
-                          placeholder="Ex: Rua Piauí, 450"
-                          value={deliveryAddress}
-                          onChange={(e) => setDeliveryAddress(e.target.value)}
-                          className="w-full bg-[#1e1e22] border border-neutral-850 focus:border-yellow-400 rounded-2xl py-3.5 pl-11 pr-10 text-xs font-semibold outline-hidden transition-colors text-white placeholder-zinc-500"
-                        />
-                        {deliveryAddress && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setDeliveryAddress('');
-                              setDeliveryDistance(null);
-                              setDeliveryFee(0);
-                              setFeeError(null);
+                    <div className="flex flex-col gap-2">
+                      <div className="flex gap-2 items-start relative">
+                        {/* Street Search Input with Autocomplete */}
+                        <div className="relative flex-1">
+                          <MapPin className="w-4 h-4 text-zinc-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                          <input 
+                            type="text"
+                            placeholder="Digite o nome da rua..."
+                            value={streetInput}
+                            onChange={(e) => {
+                              setStreetInput(e.target.value);
+                              setShowSuggestions(true);
                             }}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white p-1 rounded-full cursor-pointer bg-neutral-800"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        )}
+                            onFocus={() => setShowSuggestions(true)}
+                            onBlur={() => {
+                              setTimeout(() => {
+                                setShowSuggestions(false);
+                              }, 200);
+                            }}
+                            className="w-full bg-[#1e1e22] border border-neutral-850 focus:border-yellow-400 rounded-2xl py-3.5 pl-11 pr-10 text-xs font-semibold outline-hidden transition-colors text-white placeholder-zinc-500"
+                          />
+                          {streetInput && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setStreetInput('');
+                                setHouseNumberInput('');
+                                setDeliveryAddress('');
+                                setDeliveryDistance(null);
+                                setDeliveryFee(0);
+                                setFeeError(null);
+                              }}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white p-1 rounded-full cursor-pointer bg-neutral-800"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          )}
+
+                          {/* Autocomplete Suggestions Dropdown */}
+                          {showSuggestions && filteredStreets.length > 0 && (
+                            <div className="absolute left-0 right-0 mt-2 bg-[#1b1b1f] border border-neutral-800 rounded-2xl shadow-2xl z-50 max-h-60 overflow-y-auto divide-y divide-neutral-900/40">
+                              {filteredStreets.map((street, idx) => (
+                                <button
+                                  key={idx}
+                                  type="button"
+                                  onMouseDown={() => {
+                                    setStreetInput(street.name);
+                                    setShowSuggestions(false);
+                                    // Focus the house number input
+                                    setTimeout(() => {
+                                      numberInputRef.current?.focus();
+                                    }, 80);
+                                  }}
+                                  className="w-full text-left px-4 py-3 hover:bg-neutral-800/80 transition-colors flex items-center justify-between cursor-pointer"
+                                >
+                                  <div className="flex flex-col">
+                                    <span className="text-xs font-bold text-white">{street.name}</span>
+                                    <span className="text-[10px] text-zinc-400 font-semibold">{street.neighborhood}</span>
+                                  </div>
+                                  <span className="text-[9px] font-bold text-[#facc15] bg-[#facc15]/10 px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0">
+                                    Londrina
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* House Number Input (sem pular linha!) */}
+                        <div className="w-24 shrink-0">
+                          <input 
+                            ref={numberInputRef}
+                            type="text"
+                            placeholder="Nº"
+                            value={houseNumberInput}
+                            onChange={(e) => setHouseNumberInput(e.target.value)}
+                            className="w-full text-center bg-[#1e1e22] border border-neutral-850 focus:border-yellow-400 rounded-2xl py-3.5 text-xs font-bold outline-hidden transition-colors text-white placeholder-zinc-500"
+                          />
+                        </div>
+
+                        {/* Calculate Button */}
+                        <button
+                          type="button"
+                          onClick={triggerManualCalculation}
+                          disabled={!streetInput.trim() || !houseNumberInput.trim() || isCalculatingFee}
+                          className="px-4 py-3.5 bg-neutral-800 hover:bg-neutral-700 text-[#facc15] hover:text-yellow-400 font-extrabold text-xs rounded-2xl border border-neutral-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shrink-0 flex items-center justify-center self-stretch"
+                        >
+                          Calcular
+                        </button>
                       </div>
-                      <button
-                        type="button"
-                        onClick={triggerManualCalculation}
-                        disabled={!deliveryAddress.trim() || isCalculatingFee}
-                        className="px-4 bg-neutral-800 hover:bg-neutral-700 text-[#facc15] hover:text-yellow-400 font-extrabold text-xs rounded-2xl border border-neutral-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                      >
-                        Calcular
-                      </button>
                     </div>
 
                     {/* Geocoding / Distance calculations feedback */}
