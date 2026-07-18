@@ -10,6 +10,7 @@ import {
   Clock, 
   Sparkles, 
   MessageSquare, 
+  MessageCircle, 
   ChevronRight, 
   ChevronLeft,
   Crown,
@@ -31,7 +32,15 @@ import {
   Apple,
   Grid,
   Martini,
-  CupSoda
+  CupSoda,
+  Truck,
+  Info,
+  Navigation,
+  CreditCard,
+  QrCode,
+  Banknote,
+  User,
+  FileText
 } from 'lucide-react';
 import { Product, StoreSettings, CartItem } from '../types';
 import { createOrder } from '../dbService';
@@ -100,6 +109,248 @@ export const CATEGORY_MAP = {
   lanches: { label: 'Lanches', icon: UtensilsCrossed, color: 'from-red-400 to-red-600', bg: 'bg-red-500/10 text-red-400 border-red-500/20' }
 };
 
+// Store address coordinates (Rua Waldomiro Fernandes, 88 - Tokio, Londrina - PR)
+const STORE_LAT = -23.32185;
+const STORE_LON = -51.18128;
+
+// Distance calculation using Haversine formula (returns km)
+function calculateHaversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Earth's radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const d = R * c; // Distance in km
+  return parseFloat(d.toFixed(2));
+}
+
+// Delivery fee pricing model based on radius from the store
+function calculateDeliveryFeeByDistance(distance: number): number {
+  if (distance <= 1.0) return 3.00;
+  if (distance <= 2.5) return 5.00;
+  if (distance <= 5.0) return 8.00;
+  if (distance <= 8.0) return 12.00;
+  if (distance <= 12.0) return 15.00;
+  return 20.00;
+}
+
+// Clean Brazilian address structures for robust geocoding with OpenStreetMap
+function cleanBrazilianAddress(address: string): { street: string; number: string; cleanQuery: string } {
+  let normalized = address.trim();
+
+  // Strip ZIP codes (CEP): 86063-260 or 86063260
+  normalized = normalized.replace(/\b\d{5}-?\d{3}\b/g, '');
+
+  // Strip common complement words and everything after them
+  const complementsRegex = /\b(apto|ap|casa|bloco|bl|loja|lj|sala|sl|fundos|sobrado|condomínio|cond|residencial|lote|qd|qda|quadra)\b.*/gi;
+  normalized = normalized.replace(complementsRegex, '');
+
+  let number = '';
+  const commaParts = normalized.split(',').map(p => p.trim()).filter(Boolean);
+  let street = '';
+  
+  if (commaParts.length > 0) {
+    street = commaParts[0];
+    
+    // Check if there is a number at the very beginning of the remaining parts after the first comma
+    const remainingPart = normalized.substring(normalized.indexOf(',') + 1).trim();
+    if (remainingPart) {
+      const numMatch = remainingPart.match(/^\s*(?:nº|n|num|numero)?\s*(\d+[a-zA-Z]?)(?:\s+|-|,|\b)/i);
+      if (numMatch) {
+        number = numMatch[1];
+      }
+    }
+
+    // Fallback: check other comma parts
+    if (!number) {
+      for (let i = 1; i < commaParts.length; i++) {
+        const part = commaParts[i];
+        const numMatch = part.match(/^\s*(?:nº|n|num|numero)?\s*(\d+[a-zA-Z]?)(?:\s+|-|,|\b|$)/i);
+        if (numMatch) {
+          number = numMatch[1];
+          break;
+        }
+      }
+    }
+  }
+
+  // If no number found yet, split by hyphen
+  if (!number) {
+    const hyphenParts = normalized.split('-').map(p => p.trim()).filter(Boolean);
+    for (const part of hyphenParts) {
+      const numMatch = part.match(/^\s*(?:nº|n|num|numero)?\s*(\d+[a-zA-Z]?)(?:\s+|-|,|\b|$)/i);
+      if (numMatch) {
+        number = numMatch[1];
+        break;
+      }
+    }
+  }
+
+  // If still no number, check if there is a number at the very end of the street name
+  if (!number && street) {
+    const numAtEndMatch = street.match(/\s+(\d+[a-zA-Z]?)$/);
+    if (numAtEndMatch) {
+      number = numAtEndMatch[1];
+      street = street.substring(0, street.length - numAtEndMatch[0].length).trim();
+    }
+  }
+
+  // Clean up street name (remove trailing hyphens, commas, or extra spaces)
+  street = street.replace(/^[\s,.-]+|[\s,.-]+$/g, '').trim();
+
+  if (!street) {
+    street = normalized;
+  }
+
+  let cleanQuery = street;
+  if (number) {
+    cleanQuery += `, ${number}`;
+  }
+  
+  return { street, number, cleanQuery };
+}
+
+// Token-based validation to ensure returned location actually matches street name and is in Londrina
+function isValidAddressMatch(searchAddress: string, displayName: string): boolean {
+  const cleanDisplayName = displayName.toLowerCase();
+  
+  // Extract significant words from searchAddress
+  const words = searchAddress
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove accents
+    .split(/[\s,.-]+/)
+    .filter(w => w.length >= 3);
+    
+  const IGNORED_WORDS = new Set([
+    'rua', 'avenida', 'av', 'de', 'do', 'da', 'em', 'para', 'pr', 
+    'londrina', 'brasil', 'brazil', 'bairro', 'jardim', 'jd', 
+    'apto', 'ap', 'casa', 'bloco', 'condominio', 'residencia'
+  ]);
+  
+  const searchTokens = words.filter(w => !IGNORED_WORDS.has(w));
+  
+  if (searchTokens.length === 0) {
+    // If no specific tokens, just make sure it's in Londrina
+    return cleanDisplayName.includes('londrina');
+  }
+  
+  // Normalize display name for matching
+  const normalizedDisplayName = cleanDisplayName.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  
+  // Check if at least one search token is in the display name
+  return searchTokens.some(token => normalizedDisplayName.includes(token)) && cleanDisplayName.includes('londrina');
+}
+
+// Geocode with multiple layered fallbacks for high resilience
+async function fetchCoordinatesWithFallback(address: string): Promise<{ lat: number; lon: number; success: boolean }> {
+  const { street, number, cleanQuery } = cleanBrazilianAddress(address);
+  
+  // Try 1: Structured Search with Nominatim (Street + City + State + Country)
+  try {
+    const streetQuery = number ? `${street}, ${number}` : street;
+    const url = `https://nominatim.openstreetmap.org/search?format=json&street=${encodeURIComponent(streetQuery)}&city=Londrina&state=Parana&country=Brazil&limit=1`;
+    const response = await fetch(url, {
+      headers: { 'Accept-Language': 'pt-BR,pt;q=0.9' }
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (data && data.length > 0) {
+        const item = data[0];
+        if (isValidAddressMatch(street, item.display_name)) {
+          return { lat: parseFloat(item.lat), lon: parseFloat(item.lon), success: true };
+        }
+      }
+    }
+  } catch (e) {
+    console.error("Error in Geocode Try 1 (Structured):", e);
+  }
+
+  // Try 2: Unstructured Search (cleanQuery + Londrina, PR, Brasil)
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cleanQuery + ', Londrina, PR, Brasil')}&limit=1`;
+    const response = await fetch(url, {
+      headers: { 'Accept-Language': 'pt-BR,pt;q=0.9' }
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (data && data.length > 0) {
+        const item = data[0];
+        if (isValidAddressMatch(street, item.display_name)) {
+          return { lat: parseFloat(item.lat), lon: parseFloat(item.lon), success: true };
+        }
+      }
+    }
+  } catch (e) {
+    console.error("Error in Geocode Try 2 (Unstructured):", e);
+  }
+
+  // Try 3: Structured Search without House Number (Street only)
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&street=${encodeURIComponent(street)}&city=Londrina&state=Parana&country=Brazil&limit=1`;
+    const response = await fetch(url, {
+      headers: { 'Accept-Language': 'pt-BR,pt;q=0.9' }
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (data && data.length > 0) {
+        const item = data[0];
+        if (isValidAddressMatch(street, item.display_name)) {
+          return { lat: parseFloat(item.lat), lon: parseFloat(item.lon), success: true };
+        }
+      }
+    }
+  } catch (e) {
+    console.error("Error in Geocode Try 3 (Street Structured):", e);
+  }
+
+  // Try 4: Unstructured Search without House Number (Street only + Londrina, PR, Brasil)
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(street + ', Londrina, PR, Brasil')}&limit=1`;
+    const response = await fetch(url, {
+      headers: { 'Accept-Language': 'pt-BR,pt;q=0.9' }
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (data && data.length > 0) {
+        const item = data[0];
+        if (isValidAddressMatch(street, item.display_name)) {
+          return { lat: parseFloat(item.lat), lon: parseFloat(item.lon), success: true };
+        }
+      }
+    }
+  } catch (e) {
+    console.error("Error in Geocode Try 4 (Street Unstructured):", e);
+  }
+
+  // Try 5: Raw address fallback with Londrina restrictions
+  try {
+    let q5 = address;
+    if (!q5.toLowerCase().includes('londrina')) {
+      q5 += ', Londrina, PR, Brasil';
+    }
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q5)}&limit=1`;
+    const response = await fetch(url, {
+      headers: { 'Accept-Language': 'pt-BR,pt;q=0.9' }
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (data && data.length > 0) {
+        const item = data[0];
+        if (isValidAddressMatch(address, item.display_name)) {
+          return { lat: parseFloat(item.lat), lon: parseFloat(item.lon), success: true };
+        }
+      }
+    }
+  } catch (e) {
+    console.error("Error in Geocode Try 5 (Raw Fallback):", e);
+  }
+
+  return { lat: 0, lon: 0, success: false };
+}
+
 export default function MenuPage({ products, settings, onNavigateToAdmin }: MenuPageProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('todos');
@@ -107,7 +358,77 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [observations, setObservations] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<'pix' | 'cartao' | 'dinheiro'>('pix');
   const [orderSuccess, setOrderSuccess] = useState(false);
+
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [deliveryDistance, setDeliveryDistance] = useState<number | null>(null);
+  const [deliveryFee, setDeliveryFee] = useState<number>(0);
+  const [isCalculatingFee, setIsCalculatingFee] = useState(false);
+  const [feeError, setFeeError] = useState<string | null>(null);
+
+  // Debounced auto-calculation of distance when address is typed
+  useEffect(() => {
+    if (!deliveryAddress.trim()) {
+      setDeliveryDistance(null);
+      setDeliveryFee(0);
+      setFeeError(null);
+      return;
+    }
+
+    const delayDebounceFn = setTimeout(async () => {
+      setIsCalculatingFee(true);
+      setFeeError(null);
+      try {
+        const result = await fetchCoordinatesWithFallback(deliveryAddress);
+        if (result.success) {
+          const distance = calculateHaversineDistance(STORE_LAT, STORE_LON, result.lat, result.lon);
+          const fee = calculateDeliveryFeeByDistance(distance);
+
+          setDeliveryDistance(distance);
+          setDeliveryFee(fee);
+          setFeeError(null);
+        } else {
+          setFeeError('Endereço não localizado. Tente informar rua e número.');
+          setDeliveryDistance(null);
+          setDeliveryFee(0);
+        }
+      } catch (err) {
+        console.error("Erro ao calcular frete:", err);
+        setFeeError('Erro ao calcular o frete por distância.');
+        setDeliveryDistance(null);
+        setDeliveryFee(0);
+      } finally {
+        setIsCalculatingFee(false);
+      }
+    }, 1000); // 1s debounce
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [deliveryAddress]);
+
+  const triggerManualCalculation = async () => {
+    if (!deliveryAddress.trim()) return;
+    setIsCalculatingFee(true);
+    setFeeError(null);
+    try {
+      const result = await fetchCoordinatesWithFallback(deliveryAddress);
+      if (result.success) {
+        const distance = calculateHaversineDistance(STORE_LAT, STORE_LON, result.lat, result.lon);
+        const fee = calculateDeliveryFeeByDistance(distance);
+        setDeliveryDistance(distance);
+        setDeliveryFee(fee);
+        setFeeError(null);
+      } else {
+        setFeeError('Endereço não localizado. Tente informar rua e número.');
+        setDeliveryDistance(null);
+        setDeliveryFee(0);
+      }
+    } catch (err) {
+      setFeeError('Erro ao calcular o frete.');
+    } finally {
+      setIsCalculatingFee(false);
+    }
+  };
 
   // Dynamic category calculations
   const categoriesList = useMemo(() => {
@@ -275,15 +596,24 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
       quantity: item.quantity
     }));
 
-    const orderData = {
+    const finalDeliveryFee = deliveryFee || 0;
+    const orderData: any = {
       customerName: customerName.trim() || "Cliente Anônimo",
       observations: observations.trim() || "Nenhuma observação",
+      paymentMethod: paymentMethod,
       items: orderItems,
       total: cartSubtotal,
-      deliveryFee: 0,
-      grandTotal: cartSubtotal,
+      deliveryFee: finalDeliveryFee,
+      grandTotal: cartSubtotal + finalDeliveryFee,
       createdAt: new Date().toISOString()
     };
+
+    if (deliveryAddress.trim()) {
+      orderData.deliveryAddress = deliveryAddress.trim();
+    }
+    if (deliveryDistance !== null && deliveryDistance !== undefined) {
+      orderData.distance = deliveryDistance;
+    }
 
     try {
       await createOrder(orderData);
@@ -301,12 +631,31 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
 
     message += `\n------------------------------------\n`;
     message += `*Total dos Itens:* ${formatBRL(cartSubtotal)}\n`;
-    message += `*Taxa de Entrega:* A combinar de acordo com o endereço\n`;
-    message += `*Total Geral:* ${formatBRL(cartSubtotal)} + Taxa de Entrega\n\n`;
     
+    if (deliveryDistance !== null) {
+      message += `*Taxa de Entrega (${deliveryDistance} km):* ${formatBRL(finalDeliveryFee)}\n`;
+      message += `*Total Geral:* ${formatBRL(cartSubtotal + finalDeliveryFee)}\n\n`;
+    } else {
+      message += `*Taxa de Entrega:* A combinar\n`;
+      message += `*Total Geral:* ${formatBRL(cartSubtotal)} + Taxa de Entrega\n\n`;
+    }
+    
+    const paymentLabels: Record<string, string> = {
+      pix: 'Pix',
+      cartao: 'Cartão de Crédito/Débito',
+      dinheiro: 'Na entrega (dinheiro)'
+    };
+    const paymentLabel = paymentLabels[paymentMethod] || 'Não informado';
+
     message += `*Nome do Cliente:* ${customerName.trim() || 'Não informado'}\n`;
+    message += `*Forma de Pagamento:* ${paymentLabel}\n`;
     message += `*Observação:* ${observations.trim() || 'Nenhuma'}\n\n`;
-    message += `*Endereço de Entrega:* (Favor informar o endereço de entrega completo aqui)\n\n`;
+    
+    if (deliveryAddress.trim()) {
+      message += `*Endereço de Entrega:* ${deliveryAddress.trim()}\n\n`;
+    } else {
+      message += `*Endereço de Entrega:* (Não informado / A combinar)\n\n`;
+    }
     message += `_Obrigado pela preferência!_`;
 
     // 3. Open WhatsApp link
@@ -326,10 +675,14 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
       window.location.href = whatsappUrl;
     }
 
-    // 4. Reset Cart
+    // 4. Reset Cart & Form fields
     setCart([]);
     setCustomerName('');
     setObservations('');
+    setPaymentMethod('pix');
+    setDeliveryAddress('');
+    setDeliveryDistance(null);
+    setDeliveryFee(0);
     setIsCartOpen(false);
     setOrderSuccess(true);
 
@@ -1177,51 +1530,195 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                 </div>
 
                 {/* Checkout Fields Form */}
-                <form id="checkout-form" onSubmit={handleCheckout} className="space-y-4">
+                <div id="checkout-form" className="space-y-4">
                   <div>
                     <label className="block text-[11px] font-black text-zinc-500 uppercase tracking-widest mb-1.5">
                       Seu Nome
                     </label>
-                    <input 
-                      type="text"
-                      placeholder="Ex: Roberto Souza"
-                      value={customerName}
-                      onChange={(e) => setCustomerName(e.target.value)}
-                      className="w-full bg-[#1e1e22] border border-neutral-850 focus:border-yellow-400 rounded-2xl py-3.5 px-4 text-xs font-semibold outline-hidden transition-colors text-white placeholder-zinc-500"
-                    />
+                    <div className="relative">
+                      <User className="w-4 h-4 text-zinc-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                      <input 
+                        type="text"
+                        placeholder="Ex: Roberto Souza"
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        className="w-full bg-[#1e1e22] border border-neutral-850 focus:border-yellow-400 rounded-2xl py-3.5 pl-11 pr-4 text-xs font-semibold outline-hidden transition-colors text-white placeholder-zinc-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 flex items-center justify-between">
+                      <span>Endereço de Entrega</span>
+                      <span className="text-[10px] text-emerald-400 normal-case font-bold flex items-center gap-1">
+                        <Info className="w-3.5 h-3.5 text-emerald-400" />
+                        Cálculo Automático por Raio
+                      </span>
+                    </label>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <MapPin className="w-4 h-4 text-zinc-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                        <input 
+                          type="text"
+                          placeholder="Ex: Rua Piauí, 450"
+                          value={deliveryAddress}
+                          onChange={(e) => setDeliveryAddress(e.target.value)}
+                          className="w-full bg-[#1e1e22] border border-neutral-850 focus:border-yellow-400 rounded-2xl py-3.5 pl-11 pr-10 text-xs font-semibold outline-hidden transition-colors text-white placeholder-zinc-500"
+                        />
+                        {deliveryAddress && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDeliveryAddress('');
+                              setDeliveryDistance(null);
+                              setDeliveryFee(0);
+                              setFeeError(null);
+                            }}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white p-1 rounded-full cursor-pointer bg-neutral-800"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={triggerManualCalculation}
+                        disabled={!deliveryAddress.trim() || isCalculatingFee}
+                        className="px-4 bg-neutral-800 hover:bg-neutral-700 text-[#facc15] hover:text-yellow-400 font-extrabold text-xs rounded-2xl border border-neutral-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      >
+                        Calcular
+                      </button>
+                    </div>
+
+                    {/* Geocoding / Distance calculations feedback */}
+                    <div className="mt-2.5">
+                      {isCalculatingFee && (
+                        <div className="p-3.5 bg-[#1e1e22] border border-yellow-500/20 rounded-2xl flex items-center space-x-2 text-yellow-400 text-[11px] font-bold animate-pulse">
+                          <Navigation className="w-3.5 h-3.5 animate-spin text-yellow-400" />
+                          <span>Calculando distância e frete por raio...</span>
+                        </div>
+                      )}
+
+                      {!isCalculatingFee && deliveryDistance !== null && (
+                        <div className="p-3.5 bg-[#1e1e22] border border-neutral-850 rounded-2xl space-y-2 text-zinc-300 text-xs shadow-inner">
+                          <div className="flex items-center justify-between font-black">
+                            <span className="flex items-center gap-1.5 text-emerald-400">
+                              <Truck className="w-3.5 h-3.5 text-emerald-400" />
+                              Endereço Localizado em Londrina
+                            </span>
+                            <span className="bg-emerald-500 text-black px-2 py-0.5 rounded-full text-[10px] font-black shrink-0">
+                              {deliveryDistance} km
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center text-[11px] text-zinc-400 font-bold border-t border-neutral-850 pt-2">
+                            <span>Taxa de Entrega Estimada:</span>
+                            <span className="text-[#facc15] font-black text-xs">{formatBRL(deliveryFee)}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {!isCalculatingFee && feeError && (
+                        <div className="p-3.5 bg-[#1e1e22] border border-amber-500/20 rounded-2xl text-amber-400 text-[11px] font-bold space-y-1">
+                          <p className="text-amber-400">{feeError}</p>
+                          <p className="text-[10px] text-zinc-400 mt-0.5 font-normal">A taxa será combinada diretamente no WhatsApp.</p>
+                        </div>
+                      )}
+
+                      {!isCalculatingFee && !deliveryAddress && (
+                        <p className="text-[10px] text-zinc-500 font-semibold leading-normal pl-1">
+                          Digite seu endereço em Londrina para o cálculo automático do frete por raio de distância da loja.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-black text-zinc-500 uppercase tracking-widest mb-1.5">
+                      Forma de Pagamento
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod('pix')}
+                        className={`flex flex-col items-center justify-center p-3.5 rounded-2xl border transition-all text-center gap-1.5 cursor-pointer ${
+                          paymentMethod === 'pix'
+                            ? 'bg-yellow-400 text-black border-yellow-400 shadow-[0_0_12px_rgba(250,204,21,0.25)] font-black'
+                            : 'bg-[#1e1e22] text-zinc-300 border-neutral-850 hover:border-zinc-700 hover:text-white font-bold'
+                        }`}
+                      >
+                        <QrCode className={`w-5 h-5 stroke-[2] ${paymentMethod === 'pix' ? 'text-black' : 'text-zinc-400'}`} />
+                        <span className="text-[10px] tracking-wide uppercase">Pix</span>
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod('cartao')}
+                        className={`flex flex-col items-center justify-center p-3.5 rounded-2xl border transition-all text-center gap-1.5 cursor-pointer ${
+                          paymentMethod === 'cartao'
+                            ? 'bg-yellow-400 text-black border-yellow-400 shadow-[0_0_12px_rgba(250,204,21,0.25)] font-black'
+                            : 'bg-[#1e1e22] text-zinc-300 border-neutral-850 hover:border-zinc-700 hover:text-white font-bold'
+                        }`}
+                      >
+                        <CreditCard className={`w-5 h-5 stroke-[2] ${paymentMethod === 'cartao' ? 'text-black' : 'text-zinc-400'}`} />
+                        <span className="text-[10px] tracking-wide uppercase">Cartão</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod('dinheiro')}
+                        className={`flex flex-col items-center justify-center p-3.5 rounded-2xl border transition-all text-center gap-1.5 cursor-pointer ${
+                          paymentMethod === 'dinheiro'
+                            ? 'bg-yellow-400 text-black border-yellow-400 shadow-[0_0_12px_rgba(250,204,21,0.25)] font-black'
+                            : 'bg-[#1e1e22] text-zinc-300 border-neutral-850 hover:border-zinc-700 hover:text-white font-bold'
+                        }`}
+                      >
+                        <Banknote className={`w-5 h-5 stroke-[2] ${paymentMethod === 'dinheiro' ? 'text-black' : 'text-zinc-400'}`} />
+                        <span className="text-[10px] tracking-wide uppercase leading-tight">Dinheiro</span>
+                      </button>
+                    </div>
                   </div>
 
                   <div>
                     <label className="block text-[11px] font-black text-zinc-500 uppercase tracking-widest mb-1.5">
                       Observações ou Detalhes
                     </label>
-                    <textarea 
-                      rows={2}
-                      placeholder="Ex: Sem cebola, gelo e limão na dose, etc."
-                      value={observations}
-                      onChange={(e) => setObservations(e.target.value)}
-                      className="w-full bg-[#1e1e22] border border-neutral-850 focus:border-yellow-400 rounded-2xl py-3.5 px-4 text-xs font-semibold outline-hidden transition-colors text-white resize-none placeholder-zinc-500"
-                    />
+                    <div className="relative">
+                      <FileText className="w-4 h-4 text-zinc-400 absolute left-4 top-3.5" />
+                      <textarea 
+                        rows={2}
+                        placeholder="Ex: Sem cebola, gelo e limão na dose, etc."
+                        value={observations}
+                        onChange={(e) => setObservations(e.target.value)}
+                        className="w-full bg-[#1e1e22] border border-neutral-850 focus:border-yellow-400 rounded-2xl py-3.5 pl-11 pr-4 text-xs font-semibold outline-hidden transition-colors text-white resize-none placeholder-zinc-500"
+                      />
+                    </div>
                   </div>
-                </form>
+                </div>
 
                 {/* Total Calculations summary */}
                 <div className="bg-[#1e1e22] rounded-3xl border border-neutral-900 p-5 space-y-3 shadow-md">
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-sm text-zinc-200">Total dos Itens</span>
-                    <span className="font-display font-black text-lg text-[#facc15]">{formatBRL(cartSubtotal)}</span>
+                  <div className="flex justify-between items-center text-xs text-zinc-300 font-semibold">
+                    <span>Subtotal dos Itens</span>
+                    <span>{formatBRL(cartSubtotal)}</span>
                   </div>
-                  <p className="text-[10px] text-zinc-400 font-semibold leading-relaxed mt-1">
-                    *A taxa de entrega não está incluída neste valor. Ela será calculada e informada de acordo com o endereço de entrega fornecido no WhatsApp.
-                  </p>
+                  <div className="flex justify-between items-center text-xs text-zinc-300 font-semibold">
+                    <span>Taxa de Entrega {deliveryDistance !== null ? `(${deliveryDistance} km)` : ''}</span>
+                    <span>{deliveryDistance !== null ? formatBRL(deliveryFee) : 'A calcular'}</span>
+                  </div>
+                  <div className="flex justify-between items-center border-t border-neutral-800 pt-2.5 mt-1.5">
+                    <span className="font-bold text-sm text-zinc-200">Total Geral</span>
+                    <span className="font-display font-black text-lg text-[#facc15]">
+                      {formatBRL(cartSubtotal + deliveryFee)}
+                    </span>
+                  </div>
                 </div>
               </div>
 
               {/* Drawer Footer (Buttons) */}
               <div className="p-5 pl-14 pr-6 border-t border-zinc-950/20 bg-transparent shrink-0">
                 <button
-                  type="submit"
-                  form="checkout-form"
+                  type="button"
+                  onClick={handleCheckout}
                   disabled={!settings.isOpen}
                   className={`w-full py-4 text-black font-black rounded-3xl flex items-center justify-center space-x-2 shadow-lg transition-all ${
                     settings.isOpen 
@@ -1229,7 +1726,7 @@ export default function MenuPage({ products, settings, onNavigateToAdmin }: Menu
                       : 'bg-neutral-800 text-zinc-500 cursor-not-allowed'
                   }`}
                 >
-                  <MessageSquare className="w-5 h-5 fill-black stroke-black" />
+                  <MessageCircle className="w-5 h-5 fill-black stroke-black" />
                   <span>
                     {settings.isOpen 
                       ? 'Enviar Pedido para o WhatsApp' 

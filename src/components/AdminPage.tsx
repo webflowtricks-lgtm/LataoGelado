@@ -25,7 +25,10 @@ import {
   LogOut,
   Printer,
   Copy,
-  Search
+  Search,
+  CreditCard,
+  QrCode,
+  Banknote
 } from 'lucide-react';
 import { Product, StoreSettings, Order, ProductCategory, Category } from '../types';
 import { 
@@ -878,6 +881,42 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
                               <p className="text-xs font-medium text-slate-700 mt-0.5 leading-relaxed">
                                 {order.observations}
                               </p>
+                            </div>
+                          )}
+
+                          {/* Payment Method */}
+                          <div className="mt-3 bg-emerald-50 rounded-lg p-2.5 border border-emerald-100 text-emerald-900 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              {(!order.paymentMethod || order.paymentMethod === 'pix') && <QrCode className="w-4 h-4 text-emerald-600 shrink-0" />}
+                              {order.paymentMethod === 'cartao' && <CreditCard className="w-4 h-4 text-emerald-600 shrink-0" />}
+                              {order.paymentMethod === 'dinheiro' && <Banknote className="w-4 h-4 text-emerald-600 shrink-0" />}
+                              <div>
+                                <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Forma de Pagamento:</p>
+                                <p className="text-xs font-black text-emerald-950 mt-0.5">
+                                  {order.paymentMethod === 'pix' && 'Pix'}
+                                  {order.paymentMethod === 'cartao' && 'Cartão'}
+                                  {order.paymentMethod === 'dinheiro' && 'Na entrega (dinheiro)'}
+                                  {!order.paymentMethod && 'Pix (Padrão)'}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Delivery Address */}
+                          {order.deliveryAddress && (
+                            <div className="mt-3 bg-indigo-50/50 rounded-lg p-2.5 border border-indigo-100 text-indigo-900">
+                              <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider flex items-center gap-1">
+                                <MapPin className="w-3 h-3 text-indigo-500" />
+                                Endereço de Entrega:
+                              </p>
+                              <p className="text-xs font-semibold text-indigo-950 mt-0.5 leading-relaxed">
+                                {order.deliveryAddress}
+                              </p>
+                              {order.distance && (
+                                <p className="text-[10px] font-bold text-indigo-400 mt-1">
+                                  Distância: <span className="text-indigo-600 font-extrabold">{order.distance} km</span>
+                                </p>
+                              )}
                             </div>
                           )}
 

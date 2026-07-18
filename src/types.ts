@@ -43,6 +43,9 @@ export interface Order {
   id: string;
   customerName: string;
   observations: string;
+  deliveryAddress?: string;
+  distance?: number;
+  paymentMethod?: string;
   items: OrderItem[];
   total: number;
   deliveryFee: number;
