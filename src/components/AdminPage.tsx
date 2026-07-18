@@ -272,6 +272,9 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
     text += `DATA: ${dateFormatted}\n`;
     text += `CLIENTE: ${order.customerName}\n`;
     text += `STATUS: ${order.status === 'paid' ? 'PAGO' : 'PENDENTE'}\n`;
+    if (order.deliveryAddress) {
+      text += `ENTREGA: ${order.deliveryAddress}\n`;
+    }
     text += `${divider}\n`;
     text += `QTD ITEM                      TOTAL\n`;
     text += `${divider}\n`;
@@ -431,6 +434,7 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
           <p><strong>DATA:</strong> ${dateFormatted}</p>
           <p><strong>CLIENTE:</strong> ${order.customerName}</p>
           <p><strong>STATUS:</strong> ${order.status === 'paid' ? 'PAGO' : 'PENDENTE'}</p>
+          ${order.deliveryAddress ? `<p><strong>ENTREGA:</strong> ${order.deliveryAddress}</p>` : ''}
         </div>
         <table>
           <thead>
@@ -1800,6 +1804,9 @@ export default function AdminPage({ products, settings, orders, onNavigateToMenu
                     <p><strong>DATA:</strong> {new Date(printModalOrder.createdAt).toLocaleString('pt-BR')}</p>
                     <p><strong>CLIENTE:</strong> {printModalOrder.customerName}</p>
                     <p><strong>PAGAMENTO:</strong> {printModalOrder.status === 'paid' ? 'PAGO' : 'PENDENTE'}</p>
+                    {printModalOrder.deliveryAddress && (
+                      <p><strong>ENTREGA:</strong> {printModalOrder.deliveryAddress}</p>
+                    )}
                   </div>
 
                   {/* Table header */}
